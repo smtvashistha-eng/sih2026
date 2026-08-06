@@ -80,7 +80,6 @@
         <div class="field"><label class="f" for="lpass">Password</label><input id="lpass" type="password" placeholder="••••••••" autocomplete="current-password" /></div>
         <button class="btn accent" style="width:100%" type="submit">Log in</button>
         <div class="err" id="loginErr"></div>
-        <p class="faint" style="font-size:12px;margin:10px 0 0">Core team: <span class="mono">admin@sih.local</span> / <span class="mono">sihwin2026</span></p>
       </form>
     </div>
   </div>
@@ -94,19 +93,21 @@ const tabs=document.querySelectorAll('.tab');
 tabs.forEach(t=>t.addEventListener('click',()=>{tabs.forEach(x=>x.setAttribute('aria-selected','false'));t.setAttribute('aria-selected','true');const ap=t.dataset.tab==='apply';document.getElementById('applyForm').classList.toggle('hidden',!ap);document.getElementById('loginForm').classList.toggle('hidden',ap);}));
 document.getElementById('hasIdea').addEventListener('change',e=>document.getElementById('ownBox').classList.toggle('hidden',!e.target.checked));
 
+if(location.search.indexOf('login')>=0){document.querySelector('.tab[data-tab="login"]').click();}
+const gv=id=>document.getElementById(id).value;
 document.getElementById('applyForm').addEventListener('submit',async e=>{
   e.preventDefault();const err=document.getElementById('applyErr');err.textContent='';
   try{
     const d=await api('/api/apply',{method:'POST',body:JSON.stringify({
-      name:name.value,phone:phone.value,email:email.value,password:pass.value,college:college.value,branch:branch.value,skills:skills.value,
-      hasOwnIdea:hasIdea.checked,ownIdeaText:ideaText.value,wantsLeader:document.getElementById('wantsLeader').checked
+      name:gv('name'),phone:gv('phone'),email:gv('email'),password:gv('pass'),college:gv('college'),branch:gv('branch'),skills:gv('skills'),
+      hasOwnIdea:document.getElementById('hasIdea').checked,ownIdeaText:gv('ideaText'),wantsLeader:document.getElementById('wantsLeader').checked
     })});
     routeUser(d.user);
   }catch(ex){err.textContent=ex.message;}
 });
 document.getElementById('loginForm').addEventListener('submit',async e=>{
   e.preventDefault();const err=document.getElementById('loginErr');err.textContent='';
-  try{const d=await api('/api/login',{method:'POST',body:JSON.stringify({identifier:lid.value,password:lpass.value})});routeUser(d.user);}
+  try{const d=await api('/api/login',{method:'POST',body:JSON.stringify({identifier:gv('lid'),password:gv('lpass')})});routeUser(d.user);}
   catch(ex){err.textContent=ex.message;}
 });
 </script>

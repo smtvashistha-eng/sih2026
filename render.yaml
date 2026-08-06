@@ -1,26 +1,22 @@
-# Deploys the SIH Command Center as its OWN Render web service.
-# Completely separate from trustinonline — different repo + service. It cannot affect your storefront.
-#
-# NOTE on FREE tier: Render's free plan does not support persistent disks, and its
-# filesystem resets on every redeploy (and can reset on restarts). That means db.json
-# (registrations, teams) can be wiped on a redeploy. Fine for a short pilot if you back
-# up db.json — but for the real campaign use ONE of:
-#   (a) upgrade this service to Starter ($7/mo) and add a disk mounted at /var/data
-#       + set SIH_DATA_DIR=/var/data  (uncomment the disk block below), OR
-#   (b) ask me to wire a FREE Supabase Postgres as the datastore (persistent + free).
+# Deploys the SIH Command Center as its OWN Render web service + persistent disk.
+# Completely separate from trustinonline — different service. It cannot affect your storefront.
 services:
   - type: web
     name: sih2026
     runtime: node
-    plan: free
+    plan: starter          # paid ($7/mo) so the disk below persists all registrations
     buildCommand: npm install
     startCommand: npm start
     envVars:
       - key: SIH_SECRET
-        generateValue: true
-    # ---- Uncomment for reliable persistence on a paid instance ----
-    # disk:
-    #   name: sih-data
-    #   mountPath: /var/data
-    #   sizeGB: 1
-    # (and add an envVar SIH_DATA_DIR=/var/data)
+        generateValue: true          # session signing key, auto-generated
+      - key: SIH_DATA_DIR
+        value: /var/data             # db.json lives on the persistent disk
+      - key: SIH_ADMIN_EMAIL
+        sync: false                  # set in the Render dashboard (e.g. admin@trustinonline.in)
+      - key: SIH_ADMIN_PASSWORD
+        sync: false                  # set in the Render dashboard — a strong password (never in code)
+    disk:
+      name: sih-data
+      mountPath: /var/data
+      sizeGB: 1

@@ -1,37 +1,37 @@
-# Deploy SIH Command Center to Render (free, separate from trustinonline)
+# Deploy SIH Command Center to Render (separate from trustinonline)
 
-The code is already a committed git repo. You only do 2 things I can't: **create the GitHub repo** and **click deploy** (both need your login).
+The code is a committed git repo. You do the 2 steps that need your login; I did the rest.
 
 ## Step 1 — Create an EMPTY GitHub repo
-Go to https://github.com/new
-- Name: `sih2026-command-center`
-- **Private** is fine. **Do NOT** add a README/.gitignore (repo must be empty).
-- Click **Create repository**.
+https://github.com/new → name `sih2026-command-center` → Private is fine → **don't** add README/.gitignore → Create.
 
-## Step 2 — Push the code (run these in the platform folder)
+## Step 2 — Push the code
 ```bash
 cd "C:\Users\PC\Documents\SIH 2026\platform"
 git branch -M main
 git remote add origin https://github.com/smtvashistha-eng/sih2026-command-center.git
 git push -u origin main
 ```
-> If it asks to log in, use your GitHub account (same one as trustinonlinefront).
-> **Tell me once the repo exists and I can run this push for you** if your GitHub login is cached on this PC.
+(Tell me once the repo exists and I'll run this push for you if your GitHub login is cached here.)
 
-## Step 3 — Deploy on Render
-1. Go to https://dashboard.render.com → **New +** → **Blueprint**.
-2. Connect GitHub, pick **sih2026-command-center**.
-3. Render reads `render.yaml` and creates a **free** web service named `sih2026`.
-4. Click **Apply**. In ~2 min you get: **https://sih2026.onrender.com**
-   (if the name is taken it adds a suffix — that's fine.)
+## Step 3 — Deploy on Render (your existing paid account)
+1. https://dashboard.render.com → **New +** → **Blueprint** → pick `sih2026-command-center`.
+2. `render.yaml` creates a **Starter** web service `sih2026` **with a 1 GB persistent disk** — so registrations never get wiped. It's a **separate service**; it cannot touch trustinonline.
+3. Render will ask you to fill two secret env vars (they are NOT in the code):
+   - `SIH_ADMIN_EMAIL` → e.g. `admin@trustinonline.in`
+   - `SIH_ADMIN_PASSWORD` → a strong password only you know
+   (`SIH_SECRET` auto-generates.)
+4. **Apply** → live in ~2 min at **https://sih2026.onrender.com**.
 
-## Step 4 — Use it
-- Students: `https://sih2026.onrender.com/` (Apply). The recruitment QR on the admin page **auto-points** to this URL.
-- You: `https://sih2026.onrender.com/admin.html` — login `admin@sih.local` / `sihwin2026` (change it first in `lib/seed.js` and re-push).
+## How to log in (important)
+- **You (core team):** open `https://sih2026.onrender.com/` → click the **"Log in"** tab → enter your `SIH_ADMIN_EMAIL` + `SIH_ADMIN_PASSWORD`. It takes you to the admin dashboard.
+  - Opening `/admin.html` directly when not logged in sends you to the Login tab — that's expected. **Admins log in; they do NOT use the Apply form.**
+- **Students:** use the **"Apply now"** tab. After selection they log in with their **Team ID + password** (or their own email + password).
 
-## ⚠️ Free-tier data note (important before real launch)
-Render **free** has no persistent disk — a redeploy can wipe `db.json` (all registrations). Two fixes:
-- **(a)** Upgrade the service to **Starter ($7/mo)** + add the disk block in `render.yaml` (commented there) + env `SIH_DATA_DIR=/var/data`. Reliable.
-- **(b) Free + permanent:** ask me to wire a **free Supabase Postgres** as the datastore. Best free option for real registrations.
+## Security notes
+- Admin password lives ONLY in Render's env vars, never in the repo. Change it anytime in the dashboard → redeploy → it updates automatically.
+- Sessions are signed with `SIH_SECRET`. Cookies are HttpOnly. Passwords are scrypt-hashed.
+- To add more core-team members, create them as `role: 'lead'` in `lib/seed.js` (or ask me to add a lead-invite screen).
 
-Also: free services **sleep after 15 min** idle (first visit then takes ~50s to wake). Fine for internal use.
+## Data
+Lives in the persistent disk at `/var/data/db.json`. Survives redeploys. Back up occasionally by downloading it from the Render shell.

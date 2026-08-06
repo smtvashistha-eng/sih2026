@@ -46,7 +46,8 @@
   <div class="right">
     <div class="rcard">
       <div class="tabs" role="tablist">
-        <div class="tab" role="tab" data-tab="apply" aria-selected="true">Apply now</div>
+        <div class="tab" role="tab" data-tab="apply" aria-selected="true">Apply</div>
+        <div class="tab" role="tab" data-tab="join" aria-selected="false">Join team</div>
         <div class="tab" role="tab" data-tab="login" aria-selected="false">Log in</div>
       </div>
 
@@ -75,6 +76,22 @@
         <div class="err" id="applyErr"></div>
       </form>
 
+      <form id="joinForm" class="card pad hidden">
+        <p class="muted" style="font-size:13px;margin:0 0 12px">Your captain got selected and gave you a <b>Team ID</b> and <b>team password</b>. Use them to join — all 6 members work and chat together.</p>
+        <div class="row2">
+          <div class="field"><label class="f" for="jcode">Team ID</label><input id="jcode" placeholder="e.g. SIH-07" /></div>
+          <div class="field"><label class="f" for="jteampass">Team password</label><input id="jteampass" placeholder="from your captain" /></div>
+        </div>
+        <div class="field"><label class="f" for="jname">Your name</label><input id="jname" placeholder="Your full name" /></div>
+        <div class="row2">
+          <div class="field"><label class="f" for="jemail">Your email (login)</label><input id="jemail" type="email" placeholder="you@college.edu" /></div>
+          <div class="field"><label class="f" for="jpass">Create your password</label><input id="jpass" type="password" placeholder="min 6 characters" /></div>
+        </div>
+        <label class="checkline" style="margin:2px 0 10px"><input type="checkbox" id="jagree" /> <span>I accept the team agreement (the idea belongs to the campaign; I join as a member).</span></label>
+        <button class="btn accent" style="width:100%" type="submit">Join team</button>
+        <div class="err" id="joinErr"></div>
+      </form>
+
       <form id="loginForm" class="card pad hidden">
         <div class="field"><label class="f" for="lid">Email or Team ID</label><input id="lid" placeholder="you@college.edu  or  SIH-07" autocomplete="username" /></div>
         <div class="field"><label class="f" for="lpass">Password</label><input id="lpass" type="password" placeholder="••••••••" autocomplete="current-password" /></div>
@@ -90,10 +107,12 @@ async function api(u,o){const r=await fetch(u,Object.assign({headers:{'Content-T
 api('/api/me').then(d=>{ if(d.user) routeUser(d.user); }).catch(()=>{});
 
 const tabs=document.querySelectorAll('.tab');
-tabs.forEach(t=>t.addEventListener('click',()=>{tabs.forEach(x=>x.setAttribute('aria-selected','false'));t.setAttribute('aria-selected','true');const ap=t.dataset.tab==='apply';document.getElementById('applyForm').classList.toggle('hidden',!ap);document.getElementById('loginForm').classList.toggle('hidden',ap);}));
+const FORMS={apply:'applyForm',join:'joinForm',login:'loginForm'};
+tabs.forEach(t=>t.addEventListener('click',()=>{tabs.forEach(x=>x.setAttribute('aria-selected','false'));t.setAttribute('aria-selected','true');Object.keys(FORMS).forEach(k=>document.getElementById(FORMS[k]).classList.toggle('hidden',k!==t.dataset.tab));}));
 document.getElementById('hasIdea').addEventListener('change',e=>document.getElementById('ownBox').classList.toggle('hidden',!e.target.checked));
 
 if(location.search.indexOf('login')>=0){document.querySelector('.tab[data-tab="login"]').click();}
+if(location.search.indexOf('join')>=0){document.querySelector('.tab[data-tab="join"]').click();}
 const gv=id=>document.getElementById(id).value;
 document.getElementById('applyForm').addEventListener('submit',async e=>{
   e.preventDefault();const err=document.getElementById('applyErr');err.textContent='';
@@ -101,6 +120,15 @@ document.getElementById('applyForm').addEventListener('submit',async e=>{
     const d=await api('/api/apply',{method:'POST',body:JSON.stringify({
       name:gv('name'),phone:gv('phone'),email:gv('email'),password:gv('pass'),college:gv('college'),branch:gv('branch'),skills:gv('skills'),
       hasOwnIdea:document.getElementById('hasIdea').checked,ownIdeaText:gv('ideaText'),wantsLeader:document.getElementById('wantsLeader').checked
+    })});
+    routeUser(d.user);
+  }catch(ex){err.textContent=ex.message;}
+});
+document.getElementById('joinForm').addEventListener('submit',async e=>{
+  e.preventDefault();const err=document.getElementById('joinErr');err.textContent='';
+  try{
+    const d=await api('/api/join',{method:'POST',body:JSON.stringify({
+      teamCode:gv('jcode'),teamPassword:gv('jteampass'),name:gv('jname'),email:gv('jemail'),password:gv('jpass'),agree:document.getElementById('jagree').checked
     })});
     routeUser(d.user);
   }catch(ex){err.textContent=ex.message;}

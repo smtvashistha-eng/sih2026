@@ -6,6 +6,7 @@ The base for your whole Smart India Hackathon 2026 campaign — a real recruitme
 1. **Apply** — student scans the recruitment **QR** (shown on the admin dashboard) → lands on the Apply page → fills details, skills, and whether they have their **own idea**.
 2. **Interview** — core team schedules a slot (date/time + location or **Zoom link**); the student sees it live on their status page.
 3. **Select** — core team clicks **Select**; the platform auto-generates a **Team ID (e.g. SIH-07) + password** to hand over, and assigns an idea + pod.
+   - The captain gets a **Team ID + password** they share with their **5 teammates**, who click **"Join team"** on the site to join. All 6 share one workspace and a **team chat** (with each other and the core team).
 4. **Sign** — on first login the selected student must **sign the agreement**:
    - Standard: the 30 ideas are the organiser's IP; the student claims **no ownership rights**.
    - "Own idea" applicants can tick **"I want to be the leader"** → they **keep ownership** of their idea and sign the owner variant instead.

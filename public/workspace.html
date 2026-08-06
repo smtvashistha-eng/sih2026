@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Team — SIH 2026</title>
+<link rel="stylesheet" href="/app.css" />
+</head>
+<body>
+<div class="topbar"><div class="in">
+  <span class="brand"><span class="mk"></span> SIH 2026 <small>Team</small></span>
+  <span class="spacer"></span><span class="who" id="who"></span>
+  <button class="btn sm ghost" id="logout">Log out</button>
+</div></div>
+
+<div class="wrap grid" id="app" style="gap:18px"><div class="card pad">Loading…</div></div>
+<div id="modalRoot"></div>
+
+<script src="/route.js"></script>
+<script>
+async function api(u,o){const r=await fetch(u,Object.assign({headers:{'Content-Type':'application/json'}},o));const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('Error '+r.status));return j;}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function toast(t){const el=document.createElement('div');el.className='toast';el.textContent=t;document.body.appendChild(el);setTimeout(()=>el.remove(),1800);}
+let U=null,IDEAS=[],MILES=[],SUBS=[];
+
+function agreementText(leader){
+  if(leader) return '<h4>Participation &amp; Representation Agreement (Idea Owner)</h4><ol>'+
+    '<li>I confirm the idea I registered is my own original work and I <b>retain its ownership</b>.</li>'+
+    '<li>I authorise the campaign / college to mentor and field this idea at SIH 2026.</li>'+
+    '<li>My teammates contribute as members and make no ownership claim on my idea.</li>'+
+    '<li>The core team may remove any participant for misconduct, plagiarism or inactivity.</li>'+
+    '<li>I will represent the college professionally throughout SIH 2026.</li></ol>';
+  return '<h4>Idea &amp; Participation Agreement</h4><ol>'+
+    '<li>The 30 campaign problem ideas are the <b>intellectual property of the campaign organiser</b>.</li>'+
+    '<li>I join as a team member and claim <b>no ownership, IP or commercial rights</b> over the idea or its outputs.</li>'+
+    '<li>I will not reuse, resell or independently pursue this idea outside the campaign.</li>'+
+    '<li>The core team may reassign or remove me for misconduct, inactivity or any unwanted activity.</li>'+
+    '<li>I will represent the college professionally throughout SIH 2026.</li></ol>';
+}
+function showAgreement(){
+  const root=document.getElementById('modalRoot');
+  root.innerHTML='<div class="overlay"><div class="card pad modal">'+
+    '<div class="ey" style="font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:700">Team '+esc(U.teamCode)+' — before you enter</div>'+
+    '<h2 style="font-size:22px;margin:8px 0 12px">Sign the agreement</h2>'+
+    '<div class="agree">'+agreementText(U.wantsLeader)+'</div>'+
+    '<label class="checkline"><input type="checkbox" id="agChk" /> <span>I have read and accept the above terms.</span></label>'+
+    '<div class="field"><label class="f" for="agName">Type your full name to sign</label><input id="agName" placeholder="'+esc(U.name)+'" value="'+esc(U.name)+'"/></div>'+
+    '<button class="btn accent" id="agBtn" style="width:100%">Sign &amp; enter workspace</button>'+
+    '<div class="err" id="agErr"></div></div></div>';
+  document.getElementById('agBtn').addEventListener('click',async()=>{
+    const err=document.getElementById('agErr');err.textContent='';
+    try{const d=await api('/api/my/sign',{method:'POST',body:JSON.stringify({agree:document.getElementById('agChk').checked,signedName:document.getElementById('agName').value})});U=d.user;root.innerHTML='';toast('Signed ✓ Welcome aboard');render();}
+    catch(ex){err.textContent=ex.message;}
+  });
+}
+
+function fillIdeas(sel,val){sel.innerHTML='<option value="">— select —</option>'+IDEAS.map(i=>'<option value="'+i.id+'"'+(val==i.id?' selected':'')+'>'+esc(i.name)+' · '+esc(i.theme)+(i.zone==='open'?' (attack)':i.zone==='proven'?' (proven)':'')+'</option>').join('');}
+function odds(){const n=U.psCount?Number(U.psCount):null;if(!n)return{t:'Enter your PS submission count',c:'var(--muted)',big:'—',w:0};const o=Math.min(100,5/n*100);let t,c;if(n<=60){t='OPEN SEAT — great pick';c='var(--target)';}else if(n<=180){t='WORKABLE — build strong';c='var(--gold)';}else if(n<=350){t='CROWDED — only if elite';c='var(--accent)';}else{t='NEAR-LOCKED — switch';c='var(--crowd)';}return{t,c,big:o.toFixed(1)+'%',w:Math.max(4,Math.min(100,(1-(n-5)/495)*100))};}
+
+function render(){
+  const app=document.getElementById('app');
+  document.getElementById('who').innerHTML='<b>'+esc(U.teamName||U.name)+'</b> · '+esc(U.teamCode)+' · '+esc(U.pod);
+  const o=odds();
+  const ideaSetup = U.wantsLeader
+    ? '<div class="card pad" style="background:var(--surface-2)"><p class="sec-title">Your idea (you own it)</p><div style="font-weight:700">'+esc(U.name)+'’s idea</div><div class="muted" style="font-size:13px;margin-top:4px">'+esc(U.ownIdeaText||'')+'</div></div>'
+    : '<div class="row2"><div class="field"><label class="f">Primary idea</label><select id="idea"></select></div><div class="field"><label class="f">Backup idea</label><select id="backup"></select></div></div>';
+  let approved=0;
+  const timeline=MILES.map(m=>{
+    const sub=SUBS.find(s=>s.milestoneId===m.id)||null;const st=sub?sub.status:'todo';if(st==='approved')approved++;
+    const badge=st==='approved'?'<span class="badge b-approved">approved</span>':st==='submitted'?'<span class="badge b-submitted">under review</span>':st==='changes'?'<span class="badge b-changes">changes requested</span>':'<span class="badge b-todo">to do</span>';
+    let links='';if(sub){const L=[['github','Repo'],['deck','Deck'],['demo','Demo'],['live','Live']].filter(x=>sub[x[0]]);if(L.length)links='<div class="links">'+L.map(x=>'<a href="'+esc(sub[x[0]])+'" target="_blank" rel="noopener">'+x[1]+' ↗</a>').join('')+'</div>';if(sub.notes)links+='<div class="muted" style="font-size:13px;margin-top:6px">'+esc(sub.notes)+'</div>';}
+    const fb=sub&&sub.feedback?'<div class="fb"><b>Core team:</b> '+esc(sub.feedback)+'</div>':'';
+    return '<div class="ms '+st+'"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="wk">Week '+m.week+'</span><h4 style="flex:1">'+esc(m.title)+'</h4>'+badge+'</div>'+
+      '<div class="muted" style="font-size:13px">'+esc(m.detail)+'</div><div class="faint" style="font-size:12px;margin-top:4px">Expected: '+esc(m.asks)+'</div>'+links+fb+
+      '<div style="margin-top:10px"><button class="btn sm" data-open="'+m.id+'">'+(sub?'Update':'Submit work')+'</button></div>'+
+      '<form class="hidden" id="f-'+m.id+'" style="margin-top:12px">'+
+        '<div class="row2"><div class="field"><label class="f">GitHub</label><input name="github" value="'+esc(sub?sub.github:'')+'" placeholder="repo link"/></div><div class="field"><label class="f">Deck</label><input name="deck" value="'+esc(sub?sub.deck:'')+'" placeholder="slides link"/></div></div>'+
+        '<div class="row2"><div class="field"><label class="f">Demo video</label><input name="demo" value="'+esc(sub?sub.demo:'')+'" placeholder="YouTube/Loom"/></div><div class="field"><label class="f">Live URL</label><input name="live" value="'+esc(sub?sub.live:'')+'" placeholder="deployed"/></div></div>'+
+        '<div class="field"><label class="f">Notes</label><textarea name="notes" placeholder="what you did / need help on">'+esc(sub?sub.notes:'')+'</textarea></div>'+
+        '<button class="btn accent sm" type="submit">Submit for review</button> <span class="err" style="display:inline"></span></form></div>';
+  }).join('');
+  const dirs=(U.directives||[]);
+  const dirCard=dirs.length?'<div class="card pad rise"><p class="sec-title">Targets from the core team</p><div class="dirs">'+dirs.map(d=>'<div class="dir'+(d.done?' done':'')+'"><div><div>'+esc(d.text)+'</div><div class="faint mono" style="font-size:11px;margin-top:4px">— '+esc(d.by)+'</div></div>'+(d.done?'<span class="badge b-approved">done</span>':'<button class="btn sm" data-ack="'+d.id+'">Mark done</button>')+'</div>').join('')+'</div></div>':'';
+
+  app.innerHTML=
+    '<div class="grid rise" style="grid-template-columns:1.4fr .9fr;gap:16px" id="tg">'+
+      '<div class="card pad"><p class="sec-title">Your mission setup</p>'+
+        '<div class="field"><label class="f">Team name</label><input id="teamName" value="'+esc(U.teamName||'')+'"/></div>'+ideaSetup+
+        '<div class="row2"><div class="field"><label class="f">Problem Statement ID</label><input id="psId" value="'+esc(U.psId||'')+'" placeholder="SIH26XXXX"/></div>'+
+        '<div class="field"><label class="f">Live submissions on that PS</label><input id="psCount" type="number" min="0" value="'+(U.psCount==null?'':U.psCount)+'" placeholder="from portal"/></div></div>'+
+        '<div class="row2"><div class="field"><label class="f">Members (up to 6)</label><input id="members" value="'+esc((U.members||[]).join(', '))+'" placeholder="comma separated"/></div>'+
+        '<div class="field" style="max-width:150px"><label class="f">Female (≥1)</label><input id="fcount" type="number" min="0" max="6" value="'+(U.femaleCount||0)+'"/></div></div>'+
+        '<button class="btn accent" id="saveTeam">Save setup</button><div class="err" id="tErr"></div></div>'+
+      '<div class="card pad" style="display:flex;flex-direction:column"><p class="sec-title">Selection odds radar</p>'+
+        '<p class="muted" style="font-size:13px;margin:0 0 8px">Only 4–5 teams per PS reach the finale. Fewer rivals = higher odds.</p>'+
+        '<div style="text-align:center;margin:auto 0"><div class="mono" id="oBig" style="font-size:44px;font-weight:800;color:'+o.c+'">'+o.big+'</div>'+
+        '<div class="faint mono" style="font-size:11px;letter-spacing:.1em;text-transform:uppercase">chance to reach finale</div>'+
+        '<div class="prog" style="margin-top:12px;height:10px"><i id="oBar" style="width:'+o.w+'%"></i></div>'+
+        '<div id="oV" style="font-size:13px;font-weight:700;margin-top:10px;color:'+o.c+'">'+o.t+'</div></div></div>'+
+    '</div>'+dirCard+
+    '<div class="card pad rise"><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><h2 style="font-size:19px">The 8-Week Targets</h2><span class="spacer"></span><span class="faint mono" style="font-size:12px">'+approved+' / '+MILES.length+' approved</span><div class="prog" style="width:140px"><i style="width:'+(MILES.length?approved/MILES.length*100:0)+'%"></i></div></div>'+
+      '<p class="muted" style="font-size:13px;margin:6px 0 4px">Submit work per target. Green = approved, red = fix &amp; resubmit.</p>'+timeline+'</div>';
+
+  if(!U.wantsLeader){fillIdeas(document.getElementById('idea'),U.ideaId);fillIdeas(document.getElementById('backup'),U.backupIdeaId);}
+  const pc=document.getElementById('psCount');
+  pc.addEventListener('input',e=>{U.psCount=e.target.value===''?null:Number(e.target.value);const o=odds();document.getElementById('oBig').textContent=o.big;document.getElementById('oBig').style.color=o.c;document.getElementById('oBar').style.width=o.w+'%';document.getElementById('oV').textContent=o.t;document.getElementById('oV').style.color=o.c;});
+  document.getElementById('saveTeam').addEventListener('click',async()=>{
+    const err=document.getElementById('tErr');err.textContent='';
+    const body={teamName:document.getElementById('teamName').value,psId:document.getElementById('psId').value,psCount:document.getElementById('psCount').value,members:document.getElementById('members').value.split(',').map(s=>s.trim()).filter(Boolean),femaleCount:document.getElementById('fcount').value};
+    if(!U.wantsLeader){body.ideaId=document.getElementById('idea').value;body.backupIdeaId=document.getElementById('backup').value;}
+    try{const d=await api('/api/my/team',{method:'PUT',body:JSON.stringify(body)});U=d.user;toast('Saved ✓');}catch(ex){err.textContent=ex.message;}
+  });
+  app.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>document.getElementById('f-'+b.dataset.open).classList.toggle('hidden')));
+  MILES.forEach(m=>{const f=document.getElementById('f-'+m.id);if(!f)return;f.addEventListener('submit',async e=>{e.preventDefault();const er=f.querySelector('.err');er.textContent='';const fd=new FormData(f);try{const d=await api('/api/my/submission',{method:'POST',body:JSON.stringify({milestoneId:m.id,github:fd.get('github'),deck:fd.get('deck'),demo:fd.get('demo'),live:fd.get('live'),notes:fd.get('notes')})});SUBS=SUBS.filter(s=>s.milestoneId!==m.id);SUBS.push(d.submission);render();toast('Submitted ✓');}catch(ex){er.textContent=ex.message;}});});
+  app.querySelectorAll('[data-ack]').forEach(b=>b.addEventListener('click',async()=>{await api('/api/my/directive/'+b.dataset.ack+'/ack',{method:'POST'});const dd=U.directives.find(x=>x.id==b.dataset.ack);if(dd)dd.done=true;render();}));
+}
+
+async function boot(){
+  const d=await api('/api/me').catch(()=>({user:null}));
+  if(!d.user){location.href='/';return;}
+  if(d.user.role==='admin'||d.user.role==='lead'){location.href='/admin.html';return;}
+  if(d.user.status!=='Selected'){location.href='/status.html';return;}
+  U=d.user;
+  IDEAS=await api('/api/ideas');MILES=await api('/api/milestones');
+  if(!U.signedAgreement){showAgreement();return;}
+  SUBS=await api('/api/my/submissions');render();
+}
+document.getElementById('logout').addEventListener('click',async()=>{await api('/api/logout',{method:'POST'});location.href='/';});
+boot();
+</script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Core Team — SIH 2026 Command Center</title>
+<link rel="stylesheet" href="/app.css" />
+</head>
+<body>
+<div class="topbar"><div class="in">
+  <span class="brand"><span class="mk"></span> SIH Command Center <small>Core Team</small></span>
+  <span class="spacer"></span><span class="who" id="who"></span>
+  <button class="btn sm ghost" id="logout">Log out</button>
+</div></div>
+
+<div class="wrap grid" style="gap:18px">
+  <div class="stats" id="stats"></div>
+
+  <div class="card pad rise">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><h2 style="font-size:18px">Recruitment pipeline</h2><span class="spacer"></span><span class="faint" style="font-size:12.5px">Click an applicant → schedule interview, then select or reject.</span></div>
+    <div class="pipe" id="pipe"></div>
+  </div>
+
+  <div class="card pad rise">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><h2 style="font-size:18px">Teams</h2><span class="spacer"></span><span class="faint mono" style="font-size:12px" id="teamCount"></span></div>
+    <div class="filterbar" id="filters" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
+    <div class="tblwrap">
+      <table class="t"><thead><tr><th>Team</th><th>ID</th><th>Pod</th><th>Idea</th><th>PS</th><th>Odds</th><th>Progress</th><th>Signed</th><th>Review</th></tr></thead><tbody id="rows"></tbody></table>
+    </div>
+  </div>
+
+  <div class="card pad rise" id="qrCard">
+    <h2 style="font-size:18px;margin-bottom:4px">Recruitment QR</h2>
+    <p class="faint" style="font-size:12.5px;margin-bottom:14px">Print this on your class poster. Students scan → land on the Apply page.</p>
+    <div class="qrbox">
+      <div class="qrframe"><img id="qrImg" alt="registration QR" /></div>
+      <div>
+        <div class="muted" style="font-size:13px">Scan opens:</div>
+        <div class="cred" id="qrUrl" style="margin:6px 0 12px;word-break:break-all"></div>
+        <div class="pillbtn"><a class="btn sm" id="qrDl" download="sih2026-register-qr.png">Download QR</a><a class="btn sm ghost" id="qrOpen" target="_blank">Open Apply page</a></div>
+        <p class="faint" style="font-size:12px;margin-top:12px">After deploying, this QR auto-points to your live URL.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="modalRoot"></div>
+
+<script>
+async function api(u,o){const r=await fetch(u,Object.assign({headers:{'Content-Type':'application/json'}},o));const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('Error '+r.status));return j;}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function toast(t){const el=document.createElement('div');el.className='toast';el.textContent=t;document.body.appendChild(el);setTimeout(()=>el.remove(),1800);}
+let DATA=null,POD='all';
+
+function renderStats(){const s=DATA.stats;const items=[
+  {n:s.applicants,l:'In pipeline',c:s.applicants?'acc':''},
+  {n:s.interviews,l:'Interview stage',c:''},
+  {n:s.teams,l:'Teams selected',c:'win'},
+  {n:s.needsReview,l:'Awaiting review',c:s.needsReview?'hot':''},
+  {n:s.atRisk,l:'At risk (<25%)',c:s.atRisk?'hot':''},
+  {n:s.avgProgress+'%',l:'Avg progress',c:'acc'}];
+  document.getElementById('stats').innerHTML=items.map((i,k)=>'<div class="card stat hoverable '+i.c+' rise rise-'+(k%5+1)+'"><div class="n">'+i.n+'</div><div class="l">'+i.l+'</div></div>').join('');}
+
+function appCard(a){const badge=a.hasOwnIdea?(a.wantsLeader?'<span class="badge b-proven">own idea · leader</span>':'<span class="badge b-mid">own idea</span>'):'';
+  return '<div class="app" data-id="'+a.id+'"><div class="an">'+esc(a.name)+'</div><div class="am">'+esc(a.branch||'')+(a.college?' · '+esc(a.college):'')+'</div><div class="chipline">'+(a.skills?'<span class="tag">'+esc((a.skills||'').slice(0,40))+'</span>':'')+badge+'</div></div>';}
+function renderPipe(){
+  const applied=DATA.applicants.filter(a=>a.status==='Applied');
+  const iv=DATA.applicants.filter(a=>a.status==='Interview');
+  document.getElementById('pipe').innerHTML=
+    '<div class="col"><h3>Applied <span class="cnt">'+applied.length+'</span></h3>'+(applied.map(appCard).join('')||'<span class="faint" style="font-size:12px">No new applicants.</span>')+'</div>'+
+    '<div class="col"><h3>Interview <span class="cnt">'+iv.length+'</span></h3>'+(iv.map(appCard).join('')||'<span class="faint" style="font-size:12px">Schedule interviews from Applied.</span>')+'</div>';
+  document.querySelectorAll('#pipe .app').forEach(c=>c.addEventListener('click',()=>openUser(parseInt(c.dataset.id,10))));
+}
+
+function oddsCell(o){if(o==null)return '<span class="faint">—</span>';const c=o>=8?'var(--target)':o>=2.7?'var(--gold)':'var(--crowd)';return '<span class="num" style="color:'+c+'">'+o.toFixed(1)+'%</span>';}
+function renderFilters(){const pods=['all'].concat(DATA.pods);document.getElementById('filters').innerHTML=pods.map(p=>'<button class="fchip" data-pod="'+esc(p)+'" aria-pressed="'+(p===POD)+'" style="font-family:var(--mono);font-size:12px;border:1px solid var(--line-strong);background:'+(p===POD?'var(--ink)':'var(--surface)')+';color:'+(p===POD?'var(--bg)':'var(--muted)')+';padding:6px 11px;border-radius:999px;cursor:pointer">'+(p==='all'?'All pods':esc(p))+'</button>').join('');document.querySelectorAll('#filters .fchip').forEach(b=>b.addEventListener('click',()=>{POD=b.dataset.pod;renderFilters();renderRows();}));}
+function renderRows(){
+  const rows=DATA.teams.filter(t=>POD==='all'||t.pod===POD);
+  document.getElementById('teamCount').textContent=rows.length+' shown';
+  document.getElementById('rows').innerHTML=rows.length?rows.map(t=>{
+    const zb=t.ideaZone?'<span class="badge b-'+t.ideaZone+'" style="margin-left:6px">'+t.ideaZone+'</span>':'';
+    return '<tr class="clickrow" data-id="'+t.id+'"><td><b>'+esc(t.teamName||t.name)+'</b><div class="faint" style="font-size:11px">'+esc(t.name)+' · '+t.members.length+'👥 '+t.femaleCount+'♀</div></td>'+
+      '<td class="num">'+esc(t.teamCode||'—')+'</td><td>'+esc(t.pod)+'</td>'+
+      '<td>'+(t.wantsLeader?'<span class="badge b-proven">own idea</span>':(t.ideaName?esc(t.ideaName)+zb:'<span class="faint">—</span>'))+'</td>'+
+      '<td class="num">'+(t.psId?esc(t.psId):'<span class="faint">—</span>')+(t.psCount!=null?' <span class="faint">('+t.psCount+')</span>':'')+'</td>'+
+      '<td>'+oddsCell(t.odds)+'</td>'+
+      '<td><div style="display:flex;align-items:center;gap:8px"><div class="prog"><i style="width:'+t.progress.pct+'%"></i></div><span class="num faint" style="font-size:12px">'+t.progress.pct+'%</span></div></td>'+
+      '<td>'+(t.signedAgreement?'<span class="badge b-approved">signed</span>':'<span class="badge st-Interview">pending</span>')+'</td>'+
+      '<td>'+(t.progress.pending>0?'<span class="badge b-submitted">'+t.progress.pending+' new</span>':(t.progress.changes>0?'<span class="badge b-changes">'+t.progress.changes+' fixing</span>':'<span class="faint">—</span>'))+'</td></tr>';
+  }).join(''):'<tr><td colspan="9" class="muted" style="text-align:center;padding:20px">No teams yet. Select applicants to create teams.</td></tr>';
+  document.querySelectorAll('#rows .clickrow').forEach(r=>r.addEventListener('click',()=>openUser(parseInt(r.dataset.id,10))));
+}
+
+function closeModal(){document.getElementById('modalRoot').innerHTML='';}
+async function openUser(id){
+  const d=await api('/api/admin/user/'+id);const u=d.user;const iv=u.interview||{};
+  const ideaOpts=(cur)=>'<option value="">— idea —</option>'+DATA.ideas.map(i=>'<option value="'+i.id+'"'+(cur==i.id?' selected':'')+'>'+esc(i.name)+' · '+esc(i.theme)+'</option>').join('');
+  const podOpts=DATA.pods.map(p=>'<option'+(p===u.pod?' selected':'')+'>'+esc(p)+'</option>').join('');
+  const contact='<div class="pillbtn" style="margin:8px 0">'+[['📧',u.email],['📱',u.phone],['🏫',u.college],['🎓',u.branch],['🛠',u.skills]].filter(x=>x[1]).map(x=>'<span class="tag">'+x[0]+' '+esc(x[1])+'</span>').join('')+'</div>'+
+    (u.hasOwnIdea?'<div class="card pad" style="background:var(--surface-2);margin-bottom:6px">'+(u.wantsLeader?'<span class="badge b-proven">own idea · wants to lead (keeps rights)</span>':'<span class="badge b-mid">has own idea · will join team ideas</span>')+'<div class="muted" style="font-size:13px;margin-top:6px">'+esc(u.ownIdeaText||'')+'</div></div>':'');
+
+  let block='';
+  if(u.status==='Applied'||u.status==='Interview'){
+    block='<p class="sec-title">Schedule interview / meeting</p>'+
+      '<div class="row2"><div class="field"><label class="f">Date &amp; time</label><input id="iv-dt" value="'+esc(iv.datetime||'')+'" placeholder="e.g. 12 Aug, 5:00 PM"/></div>'+
+      '<div class="field"><label class="f">Location</label><input id="iv-loc" value="'+esc(iv.location||'')+'" placeholder="Room / hall"/></div></div>'+
+      '<div class="field"><label class="f">Zoom / meet link</label><input id="iv-zoom" value="'+esc(iv.zoom||'')+'" placeholder="https://zoom.us/..."/></div>'+
+      '<div class="field"><label class="f">Note to applicant</label><input id="iv-note" value="'+esc(iv.note||'')+'" placeholder="what to bring / prepare"/></div>'+
+      '<div class="pillbtn"><button class="btn" id="iv-save">Save &amp; notify</button><button class="btn good" id="do-select">✓ Select → make a team</button><button class="btn warn ghost" id="do-reject">Reject</button></div>';
+  } else if(u.status==='Selected'){
+    block='<div class="card pad" style="background:var(--surface-2);margin-bottom:12px"><p class="sec-title">Team credentials — hand these to the student</p>'+
+      '<div class="pillbtn" style="align-items:center"><span class="cred">ID: '+esc(u.teamCode)+'</span><span class="cred">Pass: '+esc(u.teamPassword)+'</span><button class="btn sm ghost" id="regen">Regenerate password</button></div>'+
+      '<div style="margin-top:6px">'+(u.signedAgreement?'<span class="badge b-approved">agreement signed by '+esc(u.signedName)+'</span>':'<span class="badge st-Interview">agreement not signed yet</span>')+'</div></div>'+
+      '<p class="sec-title">Adjust team</p><div class="row2"><div class="field"><label class="f">Pod</label><select id="ad-pod">'+podOpts+'</select></div>'+
+      (u.wantsLeader?'<div class="field"><label class="f">Idea</label><input value="Own idea (leader)" disabled/></div>':'<div class="field"><label class="f">Idea</label><select id="ad-idea">'+ideaOpts(u.ideaId)+'</select></div>')+'</div>'+
+      '<button class="btn sm" id="ad-save">Save</button>'+
+      '<hr class="hr"/><p class="sec-title">Set a target for this team</p><div class="dirs" style="margin-bottom:10px">'+((u.directives||[]).map(x=>'<div class="dir'+(x.done?' done':'')+'"><div>'+esc(x.text)+'<div class="faint mono" style="font-size:11px;margin-top:3px">— '+esc(x.by)+(x.done?' · done':'')+'</div></div></div>').join('')||'<span class="faint" style="font-size:12px">None yet.</span>')+'</div>'+
+      '<div style="display:flex;gap:8px"><input id="dir-in" placeholder="e.g. Add offline demo by Friday"/><button class="btn accent sm" id="dir-add">Send</button></div>'+
+      '<hr class="hr"/><p class="sec-title">Work timeline &amp; review</p>'+d.timeline.map(row=>{
+        const m=row.milestone,s=row.submission,st=s?s.status:'todo';
+        const badge=st==='approved'?'<span class="badge b-approved">approved</span>':st==='submitted'?'<span class="badge b-submitted">needs review</span>':st==='changes'?'<span class="badge b-changes">changes sent</span>':'<span class="badge b-todo">none</span>';
+        let body='<span class="faint" style="font-size:12px">No submission.</span>';
+        if(s){const L=[['github','Repo'],['deck','Deck'],['demo','Demo'],['live','Live']].filter(x=>s[x[0]]);const links=L.length?'<div class="links">'+L.map(x=>'<a href="'+esc(s[x[0]])+'" target="_blank" rel="noopener">'+x[1]+' ↗</a>').join('')+'</div>':'';const notes=s.notes?'<div class="muted" style="font-size:13px;margin-top:6px">'+esc(s.notes)+'</div>':'';const fb=s.feedback?'<div class="fb"><b>Your feedback:</b> '+esc(s.feedback)+'</div>':'';
+          body=links+notes+fb+'<div style="margin-top:8px"><input class="fbIn" data-sid="'+s.id+'" value="'+esc(s.feedback||'')+'" placeholder="feedback" style="margin-bottom:8px"/><div class="pillbtn"><button class="btn good sm" data-rev="approved" data-sid="'+s.id+'">Approve</button><button class="btn warn sm" data-rev="changes" data-sid="'+s.id+'">Request changes</button></div></div>';}
+        return '<div class="ms '+st+'"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="wk">Week '+m.week+'</span><h4 style="flex:1">'+esc(m.title)+'</h4>'+badge+'</div>'+body+'</div>';
+      }).join('');
+  } else { block='<div class="badge st-'+u.status+'">'+esc(u.status)+'</div>'; }
+
+  document.getElementById('modalRoot').innerHTML='<div class="overlay" id="ov"><div class="card pad modal">'+
+    '<div style="display:flex;align-items:flex-start;gap:10px"><div><h2 style="font-size:21px">'+esc(u.teamName||u.name)+'</h2><div class="faint" style="font-size:12px">'+esc(u.name)+' · applied '+new Date(u.createdAt).toLocaleDateString()+'</div></div><span class="spacer"></span><span class="badge st-'+u.status.replace(/\s/g,'')+'">'+esc(u.status)+'</span><button class="btn sm ghost" id="mx">✕</button></div>'+
+    contact+'<hr class="hr"/>'+block+
+    '<hr class="hr"/><button class="btn warn ghost sm" id="do-remove">Remove from campaign</button></div></div>';
+
+  document.getElementById('mx').addEventListener('click',closeModal);
+  document.getElementById('ov').addEventListener('click',e=>{if(e.target.id==='ov')closeModal();});
+  const wire=(idv,fn)=>{const el=document.getElementById(idv);if(el)el.addEventListener('click',fn);};
+  wire('iv-save',async()=>{await api('/api/admin/user/'+id+'/interview',{method:'PUT',body:JSON.stringify({datetime:document.getElementById('iv-dt').value,location:document.getElementById('iv-loc').value,zoom:document.getElementById('iv-zoom').value,note:document.getElementById('iv-note').value})});toast('Interview saved');await refresh();openUser(id);});
+  wire('do-select',async()=>{const ideaSel=document.getElementById('ad-idea');await api('/api/admin/user/'+id+'/status',{method:'PUT',body:JSON.stringify({status:'Selected'})});toast('Selected ✓ Team created');await refresh();openUser(id);});
+  wire('do-reject',async()=>{await api('/api/admin/user/'+id+'/status',{method:'PUT',body:JSON.stringify({status:'Rejected'})});toast('Marked rejected');closeModal();refresh();});
+  wire('regen',async()=>{await api('/api/admin/user/'+id+'/status',{method:'PUT',body:JSON.stringify({status:'Selected',regenerate:true})});toast('New password generated');await refresh();openUser(id);});
+  wire('ad-save',async()=>{const b={pod:document.getElementById('ad-pod').value};const is=document.getElementById('ad-idea');if(is)b.ideaId=is.value;await api('/api/admin/user/'+id,{method:'PUT',body:JSON.stringify(b)});toast('Saved');await refresh();openUser(id);});
+  wire('dir-add',async()=>{const inp=document.getElementById('dir-in');if(!inp.value.trim())return;await api('/api/admin/user/'+id+'/directive',{method:'POST',body:JSON.stringify({text:inp.value})});toast('Target sent');openUser(id);refresh();});
+  wire('do-remove',async()=>{if(!confirm('Remove this person/team from the campaign? This deletes their work.'))return;await api('/api/admin/user/'+id,{method:'DELETE'});toast('Removed');closeModal();refresh();});
+  document.querySelectorAll('#modalRoot [data-rev]').forEach(b=>b.addEventListener('click',async()=>{const sid=b.dataset.sid,st=b.dataset.rev;const fb=document.querySelector('#modalRoot .fbIn[data-sid="'+sid+'"]');if(st==='changes'&&(!fb||!fb.value.trim())){fb.focus();fb.style.borderColor='var(--crowd)';return;}await api('/api/admin/review',{method:'POST',body:JSON.stringify({submissionId:sid,status:st,feedback:fb?fb.value:''})});toast(st==='approved'?'Approved':'Changes requested');await refresh();openUser(id);}));
+}
+
+async function refresh(){DATA=await api('/api/admin/overview');renderStats();renderPipe();renderFilters();renderRows();}
+async function boot(){
+  const me=await api('/api/me').catch(()=>({user:null}));
+  if(!me.user){location.href='/';return;}
+  if(me.user.role!=='admin'&&me.user.role!=='lead'){location.href='/status.html';return;}
+  document.getElementById('who').innerHTML='<b>'+esc(me.user.name)+'</b> · core team';
+  const origin=location.origin;
+  document.getElementById('qrImg').src='/api/qr.png?data='+encodeURIComponent(origin+'/');
+  document.getElementById('qrDl').href='/api/qr.png?data='+encodeURIComponent(origin+'/');
+  document.getElementById('qrOpen').href=origin+'/';
+  document.getElementById('qrUrl').textContent=origin+'/';
+  await refresh();
+}
+document.getElementById('logout').addEventListener('click',async()=>{await api('/api/logout',{method:'POST'});location.href='/';});
+boot();
+</script>
+</body>
+</html>

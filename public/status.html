@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Application — SIH 2026</title>
+<link rel="stylesheet" href="/app.css" />
+<style>
+  .track{display:flex;gap:0;margin:22px 0 6px;flex-wrap:wrap}
+  .node{flex:1;min-width:120px;text-align:center;position:relative;padding-top:26px}
+  .node::before{content:"";position:absolute;top:9px;left:0;right:0;height:3px;background:var(--line)}
+  .node:first-child::before{left:50%}.node:last-child::before{right:50%}
+  .node .dot{position:absolute;top:2px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;background:var(--surface);border:3px solid var(--line);z-index:1}
+  .node.done .dot{background:var(--target);border-color:var(--target)}
+  .node.done::before{background:var(--target)}
+  .node.cur .dot{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 22%,transparent)}
+  .node .lb{font-size:12.5px;font-weight:700}
+  .node .sb{font-size:11px;color:var(--faint)}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="in">
+  <span class="brand"><span class="mk"></span> SIH 2026 <small>Application</small></span>
+  <span class="spacer"></span><span class="who" id="who"></span>
+  <button class="btn sm ghost" id="logout">Log out</button>
+</div></div>
+
+<div class="wrap" style="max-width:760px">
+  <div class="card pad rise" id="main"><p class="muted">Loading…</p></div>
+</div>
+
+<script src="/route.js"></script>
+<script>
+async function api(u,o){const r=await fetch(u,Object.assign({headers:{'Content-Type':'application/json'}},o));const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('Error '+r.status));return j;}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+const STEPS=[['Applied','Applied'],['Interview','Interview'],['Selected','Selected'],['Onboarded','Build']];
+function trackHtml(status){
+  const order={Applied:0,Interview:1,Selected:2};
+  let cur=order[status]!=null?order[status]:0; if(status==='Selected')cur=2;
+  return '<div class="track">'+STEPS.map((s,i)=>{const cls=i<cur?'done':(i===cur?'cur':'');return '<div class="node '+cls+'"><span class="dot"></span><div class="lb">'+s[1]+'</div></div>';}).join('')+'</div>';
+}
+async function boot(){
+  const d=await api('/api/me').catch(()=>({user:null}));
+  if(!d.user){location.href='/';return;}
+  const u=d.user;
+  if(u.role==='admin'||u.role==='lead'){location.href='/admin.html';return;}
+  if(u.status==='Selected'){location.href='/workspace.html';return;}
+  document.getElementById('who').innerHTML='<b>'+esc(u.name)+'</b>';
+  const iv=u.interview||{};
+  let body='';
+  if(u.status==='Rejected'){
+    body='<div style="text-align:center;padding:14px 0"><div style="font-size:40px">🙏</div><h2 style="font-size:22px;margin:8px 0">Not selected this round</h2><p class="muted">Thank you for applying. Keep building — talk to the core team about the next opportunity.</p></div>';
+  }else if(u.status==='Removed'){
+    body='<h2 style="font-size:20px">Access removed</h2><p class="muted">Your access has been removed by the core team. Please reach out to them directly.</p>';
+  }else{
+    body=trackHtml(u.status)+'<h2 style="font-size:22px;margin:16px 0 4px">'+(u.status==='Interview'?'Interview scheduled':'Application received')+'</h2>'+
+      '<p class="muted" style="font-size:14px">'+(u.status==='Interview'?'Please join at the time below. Bring your ideas and energy.':'We’ve got your application. Watch this page — your interview slot appears here.')+'</p>';
+    if(iv.datetime||iv.location||iv.zoom||iv.note){
+      body+='<div class="card pad hoverable" style="margin-top:16px;border-left:4px solid var(--accent)">'+
+        '<p class="sec-title">Your interview / meeting</p>'+
+        (iv.datetime?'<div style="font-size:16px;font-weight:700">🕐 '+esc(iv.datetime)+'</div>':'')+
+        (iv.location?'<div style="margin-top:6px">📍 '+esc(iv.location)+'</div>':'')+
+        (iv.zoom?'<div style="margin-top:6px">🔗 <a href="'+esc(iv.zoom)+'" target="_blank" rel="noopener">Join meeting link</a></div>':'')+
+        (iv.note?'<div class="muted" style="margin-top:8px;font-size:13px">'+esc(iv.note)+'</div>':'')+
+        '</div>';
+    }
+    body+='<hr class="hr"/><p class="sec-title">Your details</p><div class="pillbtn">'+
+      [['📧',u.email],['📱',u.phone],['🏫',u.college],['🎓',u.branch],['🛠',u.skills]].filter(x=>x[1]).map(x=>'<span class="tag">'+x[0]+' '+esc(x[1])+'</span>').join('')+'</div>';
+    if(u.hasOwnIdea){body+='<div class="card pad" style="margin-top:12px;background:var(--surface-2)"><b>Your own idea</b> '+(u.wantsLeader?'<span class="badge b-proven">leader — keeps rights</span>':'<span class="badge b-mid">will join team ideas</span>')+'<div class="muted" style="font-size:13px;margin-top:6px">'+esc(u.ownIdeaText||'')+'</div></div>';}
+  }
+  document.getElementById('main').innerHTML=body;
+}
+document.getElementById('logout').addEventListener('click',async()=>{await api('/api/logout',{method:'POST'});location.href='/';});
+boot();
+setInterval(boot, 20000); // auto-refresh so selection/interview shows up live
+</script>
+</body>
+</html>

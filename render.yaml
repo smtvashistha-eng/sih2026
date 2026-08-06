@@ -1,0 +1,26 @@
+# Deploys the SIH Command Center as its OWN Render web service.
+# Completely separate from trustinonline — different repo + service. It cannot affect your storefront.
+#
+# NOTE on FREE tier: Render's free plan does not support persistent disks, and its
+# filesystem resets on every redeploy (and can reset on restarts). That means db.json
+# (registrations, teams) can be wiped on a redeploy. Fine for a short pilot if you back
+# up db.json — but for the real campaign use ONE of:
+#   (a) upgrade this service to Starter ($7/mo) and add a disk mounted at /var/data
+#       + set SIH_DATA_DIR=/var/data  (uncomment the disk block below), OR
+#   (b) ask me to wire a FREE Supabase Postgres as the datastore (persistent + free).
+services:
+  - type: web
+    name: sih2026
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: SIH_SECRET
+        generateValue: true
+    # ---- Uncomment for reliable persistence on a paid instance ----
+    # disk:
+    #   name: sih-data
+    #   mountPath: /var/data
+    #   sizeGB: 1
+    # (and add an envVar SIH_DATA_DIR=/var/data)

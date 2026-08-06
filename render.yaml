@@ -1,22 +1,22 @@
-# Deploys the SIH Command Center as its OWN Render web service + persistent disk.
-# Completely separate from trustinonline — different service. It cannot affect your storefront.
+# Deploys the SIH Command Center as its OWN Render web service (FREE plan).
+# Data lives in a FREE Supabase Postgres (SUPABASE_URL + SUPABASE_KEY) so it is
+# permanent even though the free web service has no disk. Fully separate from
+# trustinonline — it cannot affect your storefront.
 services:
   - type: web
     name: sih2026
     runtime: node
-    plan: starter          # paid ($7/mo) so the disk below persists all registrations
+    plan: free
     buildCommand: npm install
     startCommand: npm start
     envVars:
       - key: SIH_SECRET
-        generateValue: true          # session signing key, auto-generated
-      - key: SIH_DATA_DIR
-        value: /var/data             # db.json lives on the persistent disk
+        generateValue: true       # session signing key, auto-generated
       - key: SIH_ADMIN_EMAIL
-        sync: false                  # set in the Render dashboard (e.g. admin@trustinonline.in)
+        sync: false               # set in Render dashboard (e.g. admin@trustinonline.in)
       - key: SIH_ADMIN_PASSWORD
-        sync: false                  # set in the Render dashboard — a strong password (never in code)
-    disk:
-      name: sih-data
-      mountPath: /var/data
-      sizeGB: 1
+        sync: false               # set in Render dashboard — a strong password
+      - key: SUPABASE_URL
+        sync: false               # your Supabase project URL
+      - key: SUPABASE_KEY
+        sync: false               # your Supabase service_role key (Settings → API)

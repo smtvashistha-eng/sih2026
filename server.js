@@ -2,12 +2,9 @@ const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
 const QRCode = require('qrcode');
-const { db, save, nextId } = require('./lib/db');
+const { db, save, nextId, init } = require('./lib/db');
 const { hashPassword, verifyPassword, signSession, verifySession, MAX_AGE_MS } = require('./lib/auth');
 const seed = require('./lib/seed');
-
-seed();
-if (!Array.isArray(db.comments)) { db.comments = []; save(); }
 
 const app = express();
 app.use(express.json({ limit: '256kb' }));
@@ -359,4 +356,9 @@ app.delete('/api/admin/user/:id', requireCore, (req, res) => {
 });
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log('SIH Command Center running on http://localhost:' + PORT));
+(async () => {
+  await init();
+  seed();
+  if (!Array.isArray(db.comments)) { db.comments = []; save(); }
+  app.listen(PORT, () => console.log('SIH Command Center running on http://localhost:' + PORT));
+})().catch(e => { console.error('Startup failed:', e); process.exit(1); });

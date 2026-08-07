@@ -179,9 +179,11 @@ app.get('/api/stats', (req, res) => {
   const registered = db.users.filter(u => u.role === 'member' || u.role === 'student').length;
   const teams = members.filter(m => m.status === 'Selected').length;
   const interviews = members.filter(m => m.status === 'Interview').length;
+  const mentors = db.users.filter(u => u.role === 'admin' || u.role === 'lead').length;
+  const projects = new Set(db.submissions.map(s => s.userId)).size; // teams that have started building
   const applied = members.length;
   const selectionRate = applied ? Math.round((teams / applied) * 100) : 0;
-  res.json({ registered, teams, interviews, selectionRate });
+  res.json({ registered, teams, interviews, mentors, projects, selectionRate, winTarget: 6 });
 });
 
 app.get('/api/qr.png', async (req, res) => {

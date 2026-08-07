@@ -150,7 +150,7 @@ function render(){
 
 async function boot(){
   const d=await api('/api/my').catch(()=>({user:null}));
-  if(!d.user){location.href='/';return;}
+  if(!d.user){location.href='/apply.html?login';return;}
   if(d.user.role==='admin'||d.user.role==='lead'){location.href='/admin.html';return;}
   ME=d.user;TEAM=d.team;
   if(ME.isCaptain && !ME.signedAgreement){IDEAS=await api('/api/ideas');MILES=await api('/api/milestones');showAgreement();return;}

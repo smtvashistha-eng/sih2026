@@ -173,6 +173,17 @@ app.get('/api/ideas', (req, res) => res.json(db.ideas));
 app.get('/api/milestones', (req, res) => res.json(db.milestones.slice().sort((a, b) => a.order - b.order)));
 app.get('/api/pods', (req, res) => res.json(db.pods));
 
+// Public aggregate stats for the homepage (counts only — no personal data).
+app.get('/api/stats', (req, res) => {
+  const members = db.users.filter(u => u.role === 'member');
+  const registered = db.users.filter(u => u.role === 'member' || u.role === 'student').length;
+  const teams = members.filter(m => m.status === 'Selected').length;
+  const interviews = members.filter(m => m.status === 'Interview').length;
+  const applied = members.length;
+  const selectionRate = applied ? Math.round((teams / applied) * 100) : 0;
+  res.json({ registered, teams, interviews, selectionRate });
+});
+
 app.get('/api/qr.png', async (req, res) => {
   const data = clean(req.query.data, 500) || 'https://';
   try {

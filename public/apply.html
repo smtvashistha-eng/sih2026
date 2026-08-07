@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SIH 2026 — Apply / Command Center</title>
+<link rel="stylesheet" href="/app.css" />
+<style>
+  .hero{min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr}
+  @media(max-width:880px){.hero{grid-template-columns:1fr}.left{min-height:auto}}
+  .left{position:relative;padding:clamp(28px,6vw,72px);display:flex;flex-direction:column;justify-content:center;overflow:hidden;border-right:1px solid var(--line);background:linear-gradient(160deg,var(--surface),var(--surface-2))}
+  .left .z{position:relative;z-index:1}
+  .ey{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  .left h1{font-size:clamp(32px,5.4vw,56px);font-weight:800;margin:14px 0 12px;letter-spacing:-.03em}
+  .left h1 .g{background:linear-gradient(90deg,var(--accent),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .left p{color:var(--muted);max-width:44ch;font-size:15.5px}
+  .steps{display:flex;flex-direction:column;gap:10px;margin-top:28px;max-width:400px}
+  .step{display:flex;gap:12px;align-items:flex-start;font-size:14px}
+  .step .n{font-family:var(--mono);font-weight:800;color:var(--accent);width:22px;flex:none}
+  .step b{color:var(--ink)}
+  .right{padding:clamp(22px,5vw,52px);display:flex;flex-direction:column;justify-content:center}
+  .rcard{max-width:520px;width:100%;margin:0 auto}
+  .tabs{display:flex;gap:6px;margin-bottom:16px;background:var(--surface-2);padding:5px;border-radius:12px;border:1px solid var(--line)}
+  .tab{flex:1;text-align:center;padding:10px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;color:var(--muted);transition:.15s}
+  .tab[aria-selected=true]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+  .ownbox{border:1px dashed var(--line-strong);border-radius:11px;padding:12px 14px;margin-top:4px;background:var(--surface-2)}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="left">
+    <div class="blobs"><span class="blob a"></span><span class="blob b"></span><span class="blob c"></span></div>
+    <div class="z">
+      <div class="ey rise">Smart India Hackathon 2026</div>
+      <h1 class="rise rise-1">Build. Pitch. <span class="g">Win.</span></h1>
+      <p class="rise rise-2">Apply to join the college SIH 2026 squad. Scan, register, and if you clear the interview you get a team, an idea, and a shot at the Grand Finale. This is where the campaign runs.</p>
+      <div class="steps rise rise-3">
+        <div class="step"><span class="n">1</span><span><b>Register</b> — fill your details &amp; skills (scan the QR or use this page).</span></div>
+        <div class="step"><span class="n">2</span><span><b>Interview</b> — we share your slot, location or Zoom link here.</span></div>
+        <div class="step"><span class="n">3</span><span><b>Get selected</b> — receive your Team ID &amp; password.</span></div>
+        <div class="step"><span class="n">4</span><span><b>Sign &amp; build</b> — accept the terms and start submitting work.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="rcard">
+      <div class="tabs" role="tablist">
+        <div class="tab" role="tab" data-tab="apply" aria-selected="true">Apply</div>
+        <div class="tab" role="tab" data-tab="join" aria-selected="false">Join team</div>
+        <div class="tab" role="tab" data-tab="login" aria-selected="false">Log in</div>
+      </div>
+
+      <form id="applyForm" class="card pad rise">
+        <div class="row2">
+          <div class="field"><label class="f" for="name">Full name</label><input id="name" placeholder="Your name" /></div>
+          <div class="field"><label class="f" for="phone">Phone</label><input id="phone" placeholder="WhatsApp number" /></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label class="f" for="email">Email (your login)</label><input id="email" type="email" placeholder="you@college.edu" /></div>
+          <div class="field"><label class="f" for="pass">Create password</label><input id="pass" type="password" placeholder="min 6 characters" /></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label class="f" for="college">College</label><input id="college" placeholder="Institute name" /></div>
+          <div class="field"><label class="f" for="branch">Branch &amp; year</label><input id="branch" placeholder="e.g. CSE, 2nd year" /></div>
+        </div>
+        <div class="field"><label class="f" for="skills">Your skills</label><input id="skills" placeholder="e.g. React, Python, UI design, pitching" /></div>
+        <div class="field" style="margin-bottom:8px">
+          <label class="checkline" style="margin:0"><input type="checkbox" id="hasIdea" /> <span>I already have my <b>own idea</b> (not from the 30 team ideas)</span></label>
+        </div>
+        <div class="ownbox hidden" id="ownBox">
+          <div class="field"><label class="f" for="ideaText">Describe your idea (1–2 lines)</label><textarea id="ideaText" placeholder="What problem does it solve?"></textarea></div>
+          <label class="checkline" style="margin:0"><input type="checkbox" id="wantsLeader" /> <span>I want to be the <b>leader / owner</b> of my own idea (keep my rights). If unchecked, you'll work on one of the 30 team ideas under the standard terms.</span></label>
+        </div>
+        <button class="btn accent" style="width:100%;margin-top:8px" type="submit">Submit application</button>
+        <div class="err" id="applyErr"></div>
+      </form>
+
+      <form id="joinForm" class="card pad hidden">
+        <p class="muted" style="font-size:13px;margin:0 0 12px">Your captain got selected and gave you a <b>Team ID</b> and <b>team password</b>. Use them to join — all 6 members work and chat together.</p>
+        <div class="row2">
+          <div class="field"><label class="f" for="jcode">Team ID</label><input id="jcode" placeholder="e.g. SIH-07" /></div>
+          <div class="field"><label class="f" for="jteampass">Team password</label><input id="jteampass" placeholder="from your captain" /></div>
+        </div>
+        <div class="field"><label class="f" for="jname">Your name</label><input id="jname" placeholder="Your full name" /></div>
+        <div class="row2">
+          <div class="field"><label class="f" for="jemail">Your email (login)</label><input id="jemail" type="email" placeholder="you@college.edu" /></div>
+          <div class="field"><label class="f" for="jpass">Create your password</label><input id="jpass" type="password" placeholder="min 6 characters" /></div>
+        </div>
+        <label class="checkline" style="margin:2px 0 10px"><input type="checkbox" id="jagree" /> <span>I accept the team agreement (the idea belongs to the campaign; I join as a member).</span></label>
+        <button class="btn accent" style="width:100%" type="submit">Join team</button>
+        <div class="err" id="joinErr"></div>
+      </form>
+
+      <form id="loginForm" class="card pad hidden">
+        <div class="field"><label class="f" for="lid">Email or Team ID</label><input id="lid" placeholder="you@college.edu  or  SIH-07" autocomplete="username" /></div>
+        <div class="field"><label class="f" for="lpass">Password</label><input id="lpass" type="password" placeholder="••••••••" autocomplete="current-password" /></div>
+        <button class="btn accent" style="width:100%" type="submit">Log in</button>
+        <div class="err" id="loginErr"></div>
+      </form>
+    </div>
+  </div>
+</div>
+<script src="/route.js"></script>
+<script>
+async function api(u,o){const r=await fetch(u,Object.assign({headers:{'Content-Type':'application/json'}},o));const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('Error '+r.status));return j;}
+api('/api/me').then(d=>{ if(d.user) routeUser(d.user); }).catch(()=>{});
+
+const tabs=document.querySelectorAll('.tab');
+const FORMS={apply:'applyForm',join:'joinForm',login:'loginForm'};
+tabs.forEach(t=>t.addEventListener('click',()=>{tabs.forEach(x=>x.setAttribute('aria-selected','false'));t.setAttribute('aria-selected','true');Object.keys(FORMS).forEach(k=>document.getElementById(FORMS[k]).classList.toggle('hidden',k!==t.dataset.tab));}));
+document.getElementById('hasIdea').addEventListener('change',e=>document.getElementById('ownBox').classList.toggle('hidden',!e.target.checked));
+
+if(location.search.indexOf('login')>=0){document.querySelector('.tab[data-tab="login"]').click();}
+if(location.search.indexOf('join')>=0){document.querySelector('.tab[data-tab="join"]').click();}
+const gv=id=>document.getElementById(id).value;
+document.getElementById('applyForm').addEventListener('submit',async e=>{
+  e.preventDefault();const err=document.getElementById('applyErr');err.textContent='';
+  try{
+    const d=await api('/api/apply',{method:'POST',body:JSON.stringify({
+      name:gv('name'),phone:gv('phone'),email:gv('email'),password:gv('pass'),college:gv('college'),branch:gv('branch'),skills:gv('skills'),
+      hasOwnIdea:document.getElementById('hasIdea').checked,ownIdeaText:gv('ideaText'),wantsLeader:document.getElementById('wantsLeader').checked
+    })});
+    routeUser(d.user);
+  }catch(ex){err.textContent=ex.message;}
+});
+document.getElementById('joinForm').addEventListener('submit',async e=>{
+  e.preventDefault();const err=document.getElementById('joinErr');err.textContent='';
+  try{
+    const d=await api('/api/join',{method:'POST',body:JSON.stringify({
+      teamCode:gv('jcode'),teamPassword:gv('jteampass'),name:gv('jname'),email:gv('jemail'),password:gv('jpass'),agree:document.getElementById('jagree').checked
+    })});
+    routeUser(d.user);
+  }catch(ex){err.textContent=ex.message;}
+});
+document.getElementById('loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();const err=document.getElementById('loginErr');err.textContent='';
+  try{const d=await api('/api/login',{method:'POST',body:JSON.stringify({identifier:gv('lid'),password:gv('lpass')})});routeUser(d.user);}
+  catch(ex){err.textContent=ex.message;}
+});
+</script>
+</body>
+</html>

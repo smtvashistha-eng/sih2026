@@ -41,7 +41,7 @@ function trackHtml(status){
 }
 async function boot(){
   const d=await api('/api/me').catch(()=>({user:null}));
-  if(!d.user){location.href='/';return;}
+  if(!d.user){location.href='/apply.html?login';return;}
   const u=d.user;
   if(u.role==='admin'||u.role==='lead'){location.href='/admin.html';return;}
   if(u.status==='Selected'){location.href='/workspace.html';return;}

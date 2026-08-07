@@ -151,7 +151,7 @@ async function openUser(id){
 async function refresh(){DATA=await api('/api/admin/overview');renderStats();renderPipe();renderFilters();renderRows();}
 async function boot(){
   const me=await api('/api/me').catch(()=>({user:null}));
-  if(!me.user){location.href='/?login';return;}
+  if(!me.user){location.href='/apply.html?login';return;}
   if(me.user.role!=='admin'&&me.user.role!=='lead'){location.href='/status.html';return;}
   document.getElementById('who').innerHTML='<b>'+esc(me.user.name)+'</b> · core team';
   const origin=location.origin;

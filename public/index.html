@@ -17,7 +17,7 @@
     --r:14px; --r-sm:12px; --r-lg:20px;
     --sans:"Satoshi",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --ease:cubic-bezier(.22,.61,.36,1);
-    --maxw:1160px; --sec:clamp(48px,7vw,88px);
+    --maxw:1160px; --panel:#FAFAFC; --divider:#EAECF0; --sec:clamp(44px,6vw,64px);
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
@@ -31,7 +31,7 @@
   .lede{color:var(--muted);font-size:clamp(15px,1.3vw,17px);line-height:1.65;max-width:52ch}
 
   /* buttons — one system: primary / secondary / tertiary */
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--sans);font-weight:600;font-size:15px;min-height:46px;padding:0 20px;border-radius:var(--r-sm);border:1px solid transparent;cursor:pointer;transition:transform .2s var(--ease),background .2s,color .2s,border-color .2s,box-shadow .2s}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--sans);font-weight:600;font-size:15px;min-height:48px;padding:0 22px;border-radius:var(--r-sm);border:1px solid transparent;cursor:pointer;transition:transform .2s var(--ease),background .2s,color .2s,border-color .2s,box-shadow .2s}
   .btn.primary{background:var(--accent);color:#fff;box-shadow:0 6px 16px -8px rgba(37,99,235,.55)}
   .btn.primary:hover{background:var(--accent-d);transform:translateY(-1px)}
   .btn.secondary{background:var(--card);color:var(--text);border-color:var(--border-2)}
@@ -58,24 +58,28 @@
   @media(max-width:520px){.navbtns .t.join{display:none}}
 
   section{padding:var(--sec) 0}
+  .panel{background:var(--panel)}
+  main>section+section{border-top:1px solid transparent}
+  main>section:not(.panel)+section:not(.panel){border-top:1px solid var(--divider)}
   .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
   .reveal.in{opacity:1;transform:none}
   .r1{transition-delay:.06s}.r2{transition-delay:.12s}.r3{transition-delay:.18s}.r4{transition-delay:.24s}
 
   /* section heading block */
-  .sh{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:var(--s12)}
+  .sh{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:var(--s8)}
   .sh h2{font-size:clamp(26px,3.4vw,40px);font-weight:900;letter-spacing:-.035em}
   .sh p{color:var(--muted);font-size:15px;max-width:40ch}
 
   /* HERO */
-  .hero{padding-top:clamp(40px,6vw,72px);padding-bottom:var(--sec)}
-  .hero .grid{display:grid;grid-template-columns:1.02fr .98fr;gap:clamp(28px,5vw,56px);align-items:center}
-  @media(max-width:940px){.hero .grid{grid-template-columns:1fr;gap:40px}}
-  .hero h1{font-size:clamp(40px,6.4vw,72px);font-weight:900;letter-spacing:-.045em;margin:16px 0 18px}
+  .hero{min-height:82vh;display:flex;align-items:center;padding-top:clamp(24px,3.5vw,44px);padding-bottom:var(--s16)}
+  .hero>.container{width:100%}
+  .hero .grid{display:grid;grid-template-columns:1.02fr .98fr;gap:clamp(28px,5vw,52px);align-items:center}
+  @media(max-width:940px){.hero{min-height:auto}.hero .grid{grid-template-columns:1fr;gap:36px}}
+  .hero h1{font-size:clamp(38px,6vw,66px);font-weight:900;letter-spacing:-.045em;margin:12px 0 16px}
   .hero h1 span{display:block}
   .hero h1 .g{color:var(--accent)}
-  .hero .cta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:26px}
-  .hero .meta{display:flex;gap:18px;flex-wrap:wrap;margin-top:22px;color:var(--faint);font-size:13px}
+  .hero .cta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:24px}
+  .hero .meta{display:flex;gap:18px;flex-wrap:wrap;margin-top:20px;color:var(--faint);font-size:13px}
   .hero .meta b{color:var(--text);font-weight:600}
   .hero .meta .d{color:var(--success)}
 
@@ -130,6 +134,10 @@
   .metric{padding:26px 22px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
   .metric .n{font-size:clamp(30px,3.4vw,42px);font-weight:900;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
   .metric .l{font-size:13px;color:var(--muted);margin-top:4px}
+  /* stats bar floats up to overlap the hero, connecting hero → platform */
+  .stats-band{padding:0;margin-top:-40px;position:relative;z-index:3}
+  .stats-band .metrics{box-shadow:var(--shadow)}
+  @media(max-width:940px){.stats-band{margin-top:var(--s6)}}
 
   /* WHY — editorial rows */
   .why{display:flex;flex-direction:column;gap:var(--s8)}
@@ -187,10 +195,15 @@
   .qa .a{color:var(--muted);font-size:14.5px;padding:0 0 18px;max-width:70ch}
 
   /* FINAL CTA */
-  .final{border:1px solid var(--border);border-radius:var(--r-lg);background:var(--card);box-shadow:var(--shadow);padding:clamp(36px,5vw,60px);text-align:center}
-  .final h2{font-size:clamp(28px,4.2vw,50px);font-weight:900;letter-spacing:-.04em;max-width:18ch;margin:0 auto}
-  .final p{color:var(--muted);margin:14px auto 26px;max-width:44ch}
+  .final{border-radius:var(--r-lg);background:#111827;color:#fff;padding:clamp(36px,5vw,56px);text-align:center}
+  .final .label{color:rgba(255,255,255,.55)}
+  .final h2{font-size:clamp(28px,4.2vw,50px);font-weight:900;letter-spacing:-.04em;max-width:18ch;margin:0 auto;color:#fff}
+  .final p{color:rgba(255,255,255,.68);margin:12px auto 24px;max-width:44ch}
   .final .cta{display:inline-flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .final .btn.secondary{background:transparent;border-color:rgba(255,255,255,.35);color:#fff}
+  .final .btn.secondary:hover{border-color:#fff;background:rgba(255,255,255,.06)}
+  .final .btn.tertiary{color:#fff}
+  .final .btn.tertiary:hover{color:#fff;opacity:.85}
 
   /* footer */
   footer{border-top:1px solid var(--border);padding:var(--s16) 0 var(--s12);margin-top:var(--sec)}
@@ -228,7 +241,7 @@
   <div>
     <div class="label reveal in">Smart India Hackathon 2026</div>
     <h1 class="reveal in r1"><span>Build for India.</span><span>Solve real problems.</span><span class="g">Lead innovation.</span></h1>
-    <p class="lede reveal in r2">The digital headquarters for our Smart India Hackathon community. Apply, get matched into a team, and take a real idea to the national stage — all in one place.</p>
+    <p class="lede reveal in r2">Apply, get matched into a team, and take a real idea all the way to the national stage.</p>
     <div class="cta reveal in r3">
       <a class="btn primary" href="/apply.html">Apply now</a>
       <a class="btn secondary" href="/apply.html?join">Join team</a>
@@ -247,14 +260,8 @@
   </div>
 </div></header>
 
-<!-- LIVE PLATFORM PREVIEW -->
-<section id="platform"><div class="container">
-  <div class="sh reveal"><div><div class="label" style="margin-bottom:10px">The platform</div><h2>One place to run the whole hackathon.</h2></div><p>From application to the finale — every step lives inside a single, well-run workspace.</p></div>
-  <div class="rail reveal r1" id="rail"></div>
-</div></section>
-
-<!-- STATISTICS -->
-<section style="padding-top:0"><div class="container">
+<!-- STATISTICS — floats up to overlap the hero -->
+<section class="stats-band"><div class="container">
   <div class="metrics reveal" id="metrics">
     <div class="metric"><div class="n" data-count="0">0</div><div class="l">Registered students</div></div>
     <div class="metric"><div class="n" data-count="0">0</div><div class="l">Teams created</div></div>
@@ -263,6 +270,12 @@
     <div class="metric"><div class="n" data-count="0">0</div><div class="l">Ideas curated</div></div>
     <div class="metric"><div class="n" data-count="6" data-suffix="+">0</div><div class="l">National wins targeted</div></div>
   </div>
+</div></section>
+
+<!-- LIVE PLATFORM PREVIEW -->
+<section id="platform" class="panel"><div class="container">
+  <div class="sh reveal"><div><div class="label" style="margin-bottom:10px">The platform</div><h2>One place to run the whole hackathon.</h2></div><p>From application to the finale — every step lives inside a single, well-run workspace.</p></div>
+  <div class="rail reveal r1" id="rail"></div>
 </div></section>
 
 <!-- WHY -->
@@ -276,7 +289,7 @@
 </div></section>
 
 <!-- JOURNEY -->
-<section id="journey"><div class="container">
+<section id="journey" class="panel"><div class="container">
   <div class="sh reveal"><div><div class="label" style="margin-bottom:10px">How SIH works</div><h2>Eight steps to the national stage.</h2></div><p>You always know exactly what's next — no confusion, no chaos.</p></div>
   <div class="tl reveal r1" id="timeline"></div>
 </div></section>
@@ -288,7 +301,7 @@
 </div></section>
 
 <!-- MENTORS -->
-<section id="mentors"><div class="container">
+<section id="mentors" class="panel"><div class="container">
   <div class="sh reveal"><div><div class="label" style="margin-bottom:10px">Mentorship</div><h2>Guidance that has been there.</h2></div><p>Faculty, industry, and alumni mentors — matched to your domain.</p></div>
   <div class="mentors reveal r1" id="mentorGrid"></div>
 </div></section>

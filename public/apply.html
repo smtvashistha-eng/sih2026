@@ -3,48 +3,130 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SIH 2026 — Apply / Command Center</title>
-<link rel="stylesheet" href="/app.css" />
+<title>SIH 2026 — Apply · Join · Login</title>
+<link rel="preconnect" href="https://api.fontshare.com" />
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700,900&display=swap" rel="stylesheet" />
 <style>
-  .hero{min-height:100vh;display:grid;grid-template-columns:1.05fr .95fr}
-  @media(max-width:880px){.hero{grid-template-columns:1fr}.left{min-height:auto}}
-  .left{position:relative;padding:clamp(28px,6vw,72px);display:flex;flex-direction:column;justify-content:center;overflow:hidden;border-right:1px solid var(--line);background:linear-gradient(160deg,var(--surface),var(--surface-2))}
-  .left .z{position:relative;z-index:1}
-  .ey{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:700}
-  .left h1{font-size:clamp(32px,5.4vw,56px);font-weight:800;margin:14px 0 12px;letter-spacing:-.03em}
-  .left h1 .g{background:linear-gradient(90deg,var(--accent),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
-  .left p{color:var(--muted);max-width:44ch;font-size:15.5px}
-  .steps{display:flex;flex-direction:column;gap:10px;margin-top:28px;max-width:400px}
-  .step{display:flex;gap:12px;align-items:flex-start;font-size:14px}
-  .step .n{font-family:var(--mono);font-weight:800;color:var(--accent);width:22px;flex:none}
-  .step b{color:var(--ink)}
-  .right{padding:clamp(22px,5vw,52px);display:flex;flex-direction:column;justify-content:center}
-  .rcard{max-width:520px;width:100%;margin:0 auto}
-  .tabs{display:flex;gap:6px;margin-bottom:16px;background:var(--surface-2);padding:5px;border-radius:12px;border:1px solid var(--line)}
-  .tab{flex:1;text-align:center;padding:10px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;color:var(--muted);transition:.15s}
-  .tab[aria-selected=true]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
-  .ownbox{border:1px dashed var(--line-strong);border-radius:11px;padding:12px 14px;margin-top:4px;background:var(--surface-2)}
+  :root{
+    --bg:#FAFAF8; --panel:#FAFAFC; --card:#FFFFFF; --text:#101828; --muted:#667085; --faint:#98A2B3;
+    --accent:#2563EB; --accent-d:#1D4ED8; --accent-soft:#EEF3FF; --success:#16A34A;
+    --border:#E7EAF0; --border-2:#DFE3EA; --bg-2:#F3F5F8;
+    --shadow-card:0 20px 60px rgba(15,23,42,.08); --shadow-sm:0 1px 2px rgba(16,24,40,.06);
+    --sans:"Satoshi",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  h1,h2,h3{margin:0;font-weight:700;letter-spacing:-.03em;line-height:1.08}
+  p{margin:0}
+
+  /* layout — one aligned grid */
+  .onb{max-width:1080px;margin:0 auto;min-height:100vh;display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,5vw,64px);align-items:center;padding:clamp(32px,5vw,56px) clamp(20px,4vw,32px)}
+  @media(max-width:900px){.onb{grid-template-columns:1fr;gap:32px;min-height:auto;padding-top:40px;padding-bottom:56px}}
+
+  /* left panel — subtle warmth, no blobs */
+  .left{position:relative}
+  .left::before{content:"";position:absolute;inset:-40px -20px;z-index:0;pointer-events:none;
+    background:radial-gradient(520px 360px at 12% 6%,rgba(37,99,235,.05),transparent 60%),radial-gradient(460px 380px at 96% 94%,rgba(37,99,235,.04),transparent 62%)}
+  .left>*{position:relative;z-index:1}
+  .label{font-size:12.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  .left h1{font-size:clamp(34px,4.6vw,52px);font-weight:900;letter-spacing:-.04em;margin:14px 0 14px}
+  .left h1 .g{color:var(--accent)}
+  .left .intro{color:var(--muted);font-size:15px;max-width:42ch}
+
+  /* numbered timeline — thin connecting line */
+  .tl{margin-top:28px}
+  .tl .li{display:flex;gap:14px;position:relative;padding-bottom:18px}
+  .tl .li::before{content:"";position:absolute;left:14px;top:30px;bottom:-2px;width:1.5px;background:var(--border)}
+  .tl .li:last-child{padding-bottom:0}
+  .tl .li:last-child::before{display:none}
+  .tl .num{width:29px;height:29px;flex:none;border-radius:50%;background:var(--card);border:1px solid var(--border);display:grid;place-items:center;font-size:13px;font-weight:700;color:var(--accent);box-shadow:var(--shadow-sm)}
+  .tl .tx{font-size:14px;color:var(--muted);padding-top:4px}
+  .tl .tx b{color:var(--text);font-weight:600}
+
+  /* supporting metrics */
+  .metrics{display:flex;gap:clamp(20px,4vw,36px);margin-top:32px;padding-top:24px;border-top:1px solid var(--border)}
+  .metrics .m .n{font-size:24px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .metrics .m .l{font-size:12px;color:var(--muted);margin-top:2px}
+
+  /* right — floating card, like the hero cards */
+  .card-shell{background:var(--card);border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow-card);padding:clamp(24px,4vw,40px)}
+
+  /* Apple-style segmented control (CSS-only sliding, driven by existing aria-selected) */
+  .tabs{position:relative;display:flex;padding:4px;background:var(--bg-2);border:1px solid var(--border);border-radius:14px;margin-bottom:24px}
+  .tabs::before{content:"";position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/3);background:var(--card);border-radius:10px;box-shadow:var(--shadow-sm);transition:transform .25s cubic-bezier(.4,0,.2,1);z-index:0}
+  .tabs:has(.tab[data-tab="join"][aria-selected="true"])::before{transform:translateX(100%)}
+  .tabs:has(.tab[data-tab="login"][aria-selected="true"])::before{transform:translateX(200%)}
+  .tab{position:relative;z-index:1;flex:1;text-align:center;padding:9px 8px;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted);border-radius:10px;transition:color .2s;user-select:none}
+  .tab[aria-selected="true"]{color:var(--text)}
+  .tab:hover{color:var(--text)}
+
+  /* forms — neutralise the old card look (they live inside the shell) */
+  form.card{background:transparent;border:none;box-shadow:none;border-radius:0;padding:0}
+  .pad{padding:0}
+  .hidden{display:none!important}
+
+  .field{margin-bottom:16px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:520px){.row2{grid-template-columns:1fr;gap:0}}
+  label.f{display:block;font-size:13px;font-weight:600;color:#344054;margin-bottom:7px}
+
+  .card-shell input:not([type=checkbox]),.card-shell textarea{
+    width:100%;min-height:56px;border:1px solid var(--border-2);border-radius:16px;padding:0 16px;
+    font-family:var(--sans);font-size:15px;color:var(--text);background:var(--card);
+    transition:border-color .2s,box-shadow .2s}
+  .card-shell textarea{min-height:92px;padding:14px 16px;line-height:1.5;resize:vertical}
+  .card-shell input:not([type=checkbox]):hover,.card-shell textarea:hover{border-color:#C7CED9}
+  .card-shell input:not([type=checkbox]):focus,.card-shell textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(37,99,235,.12)}
+  ::placeholder{color:var(--faint)}
+
+  .checkline{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:var(--muted);line-height:1.5}
+  .checkline b{color:var(--text);font-weight:600}
+  input[type=checkbox]{width:18px;height:18px;margin-top:2px;flex:none;accent-color:var(--accent);cursor:pointer}
+  .ownbox{border:1px dashed var(--border-2);border-radius:16px;padding:14px 16px;margin:4px 0 14px;background:var(--panel)}
+
+  /* buttons — same system as homepage */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--sans);font-weight:600;font-size:15.5px;min-height:52px;padding:0 22px;border-radius:12px;border:1px solid transparent;cursor:pointer;transition:transform .2s var(--ease),background .2s,box-shadow .2s}
+  .btn.accent{background:var(--accent);color:#fff;box-shadow:0 10px 22px -12px rgba(37,99,235,.65)}
+  .btn.accent:hover{background:var(--accent-d);transform:translateY(-1px);box-shadow:0 14px 26px -12px rgba(37,99,235,.75)}
+
+  .err{color:#D92D20;font-size:13px;font-weight:600;margin-top:10px;min-height:16px}
+  .muted{color:var(--muted)}
+
+  /* calm entrance */
+  @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .rise{animation:rise .6s var(--ease) both}
+  .rise-1{animation:rise .6s var(--ease) .08s both}
+  .rise-2{animation:rise .6s var(--ease) .16s both}
+  .rise-3{animation:rise .6s var(--ease) .24s both}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
 </style>
 </head>
 <body>
-<div class="hero">
+<div class="onb">
+
   <div class="left">
-    <div class="blobs"><span class="blob a"></span><span class="blob b"></span><span class="blob c"></span></div>
-    <div class="z">
-      <div class="ey rise">Smart India Hackathon 2026</div>
-      <h1 class="rise rise-1">Build. Pitch. <span class="g">Win.</span></h1>
-      <p class="rise rise-2">Apply to join the college SIH 2026 squad. Scan, register, and if you clear the interview you get a team, an idea, and a shot at the Grand Finale. This is where the campaign runs.</p>
-      <div class="steps rise rise-3">
-        <div class="step"><span class="n">1</span><span><b>Register</b> — fill your details &amp; skills (scan the QR or use this page).</span></div>
-        <div class="step"><span class="n">2</span><span><b>Interview</b> — we share your slot, location or Zoom link here.</span></div>
-        <div class="step"><span class="n">3</span><span><b>Get selected</b> — receive your Team ID &amp; password.</span></div>
-        <div class="step"><span class="n">4</span><span><b>Sign &amp; build</b> — accept the terms and start submitting work.</span></div>
-      </div>
+    <div class="label rise">Smart India Hackathon 2026</div>
+    <h1 class="rise rise-1">Build. Pitch. <span class="g">Win.</span></h1>
+    <p class="intro rise rise-2">Apply to join the college SIH 2026 squad. Clear the interview and you get a team, an idea, and a shot at the Grand Finale — all run from one place.</p>
+    <div class="tl rise rise-3">
+      <div class="li"><span class="num">1</span><span class="tx"><b>Register</b> — your details &amp; skills (scan the QR or use this page).</span></div>
+      <div class="li"><span class="num">2</span><span class="tx"><b>Interview</b> — we share your slot, location or Zoom link here.</span></div>
+      <div class="li"><span class="num">3</span><span class="tx"><b>Get selected</b> — receive your Team ID &amp; password.</span></div>
+      <div class="li"><span class="num">4</span><span class="tx"><b>Sign &amp; build</b> — accept the terms and start submitting work.</span></div>
+    </div>
+    <div class="metrics rise rise-3">
+      <div class="m"><div class="n" id="mReg">—</div><div class="l">Students registered</div></div>
+      <div class="m"><div class="n" id="mTeam">—</div><div class="l">Teams created</div></div>
+      <div class="m"><div class="n" id="mIdea">—</div><div class="l">Ideas curated</div></div>
     </div>
   </div>
 
   <div class="right">
-    <div class="rcard">
+    <div class="card-shell rise rise-1">
       <div class="tabs" role="tablist">
         <div class="tab" role="tab" data-tab="apply" aria-selected="true">Apply</div>
         <div class="tab" role="tab" data-tab="join" aria-selected="false">Join team</div>
@@ -138,6 +220,19 @@ document.getElementById('loginForm').addEventListener('submit',async e=>{
   try{const d=await api('/api/login',{method:'POST',body:JSON.stringify({identifier:gv('lid'),password:gv('lpass')})});routeUser(d.user);}
   catch(ex){err.textContent=ex.message;}
 });
+</script>
+<script>
+/* additive, presentational only — fills the left-panel metrics (read-only endpoints) */
+(function(){
+  Promise.all([
+    fetch('/api/stats').then(function(r){return r.json();}).catch(function(){return {};}),
+    fetch('/api/ideas').then(function(r){return r.json();}).catch(function(){return [];})
+  ]).then(function(res){
+    var s=res[0]||{}, ideas=(res[1]||[]).length||31;
+    var set=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
+    set('mReg', s.registered||0); set('mTeam', s.teams||0); set('mIdea', ideas);
+  });
+})();
 </script>
 </body>
 </html>

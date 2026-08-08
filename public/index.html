@@ -3,152 +3,206 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SIH 2026 — Build products. Solve problems. Create impact.</title>
-<meta name="description" content="Rajasthan's most organized Smart India Hackathon community. A quiet place for people who build." />
+<title>SIH 2026 — The digital headquarters for Smart India Hackathon.</title>
+<meta name="description" content="Build for India. Solve real problems. Lead innovation. The premium home for Smart India Hackathon 2026." />
 <link rel="preconnect" href="https://api.fontshare.com" />
 <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet" />
 <style>
   :root{
-    --ink:#0B0D12; --ink-2:#161A22; --muted:#5B6472; --faint:#98A1B0;
-    --white:#FFFFFF; --gray:#FAFBFC; --gray-2:#F3F5F8; --line:#ECEEF2; --line-2:#E2E6EC;
-    --blue:#2563EB; --blue-ink:#1D4ED8;
+    --bg:#FAFAF8; --bg-2:#F4F5F2; --card:#FFFFFF; --text:#101828; --muted:#667085; --faint:#98A2B3;
+    --accent:#2563EB; --accent-d:#1D4ED8; --accent-soft:#EEF3FF; --success:#16A34A;
+    --border:#E7EAF0; --border-2:#DFE3EA; --shadow:0 10px 40px rgba(16,24,40,.06); --shadow-sm:0 1px 2px rgba(16,24,40,.05);
+    /* spacing scale — 4/8/12/16/24/32/48/64/80/96/128 */
+    --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s6:24px;--s8:32px;--s12:48px;--s16:64px;--s20:80px;--s24:96px;--s32:128px;
+    --r:14px; --r-sm:12px; --r-lg:20px;
     --sans:"Satoshi",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --ease:cubic-bezier(.22,.61,.36,1);
-    --maxw:1080px;
+    --maxw:1160px; --sec:clamp(48px,7vw,88px);
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-  body{margin:0;background:var(--white);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
   a{text-decoration:none;color:inherit}
-  h1,h2,h3{margin:0;font-weight:700;line-height:1.04;letter-spacing:-.035em}
+  h1,h2,h3,h4{margin:0;font-weight:700;line-height:1.08;letter-spacing:-.03em}
   p{margin:0}
-  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 clamp(22px,5vw,40px)}
-  .label{font-size:12.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
-  .lede{color:var(--muted);font-size:clamp(16px,1.4vw,18px);line-height:1.7;max-width:56ch}
+  .container{max-width:var(--maxw);margin:0 auto;padding:0 clamp(20px,4vw,32px)}
+  .label{font-size:12.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  .muted{color:var(--muted)}
+  .lede{color:var(--muted);font-size:clamp(15px,1.3vw,17px);line-height:1.65;max-width:52ch}
 
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--sans);font-weight:600;font-size:15px;min-height:50px;padding:0 24px;border-radius:12px;border:1px solid transparent;cursor:pointer;transition:transform .22s var(--ease),background .22s var(--ease),color .2s,border-color .2s,box-shadow .22s var(--ease)}
-  .btn.solid{background:var(--blue);color:#fff;box-shadow:0 1px 2px rgba(37,99,235,.25),0 8px 20px -12px rgba(37,99,235,.6)}
-  .btn.solid:hover{background:var(--blue-ink);transform:translateY(-2px);box-shadow:0 2px 4px rgba(37,99,235,.3),0 14px 28px -12px rgba(37,99,235,.7)}
-  .btn.ink{background:var(--ink);color:#fff;box-shadow:0 8px 20px -14px rgba(11,13,18,.7)}
-  .btn.ink:hover{transform:translateY(-2px)}
-  .btn.quiet{background:transparent;color:var(--ink);padding:11px 6px}
-  .btn.quiet .u{position:relative}
-  .btn.quiet .u::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:1.5px;background:currentColor;transform:scaleX(.001);transform-origin:left;transition:transform .3s var(--ease)}
-  .btn.quiet:hover .u::after{transform:scaleX(1)}
-  .btn.quiet .arw{transition:transform .25s var(--ease)}
-  .btn.quiet:hover .arw{transform:translateX(4px)}
+  /* buttons — one system: primary / secondary / tertiary */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--sans);font-weight:600;font-size:15px;min-height:46px;padding:0 20px;border-radius:var(--r-sm);border:1px solid transparent;cursor:pointer;transition:transform .2s var(--ease),background .2s,color .2s,border-color .2s,box-shadow .2s}
+  .btn.primary{background:var(--accent);color:#fff;box-shadow:0 6px 16px -8px rgba(37,99,235,.55)}
+  .btn.primary:hover{background:var(--accent-d);transform:translateY(-1px)}
+  .btn.secondary{background:var(--card);color:var(--text);border-color:var(--border-2)}
+  .btn.secondary:hover{border-color:var(--text);transform:translateY(-1px)}
+  .btn.tertiary{background:transparent;color:var(--text);padding:0 6px;min-height:46px}
+  .btn.tertiary .arw{transition:transform .2s var(--ease)}
+  .btn.tertiary:hover .arw{transform:translateX(4px)}
+  .btn.tertiary:hover{color:var(--accent)}
+  .btn.sm{min-height:38px;font-size:14px;padding:0 15px}
 
   /* nav */
-  nav{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.82);backdrop-filter:blur(12px);border-bottom:1px solid transparent;transition:border-color .3s}
-  nav.edge{border-color:var(--line)}
-  nav .in{display:flex;align-items:center;gap:24px;height:60px;max-width:var(--maxw);margin:0 auto;padding:0 clamp(22px,5vw,40px)}
-  .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16.5px;letter-spacing:-.02em}
-  .logo .mk{width:26px;height:26px;border-radius:7px;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700}
-  .navlinks{display:flex;gap:26px;margin:0 auto;font-size:14.5px;font-weight:500;color:var(--muted)}
-  .navlinks a{transition:color .18s}.navlinks a:hover{color:var(--ink)}
-  .navbtns{display:flex;gap:6px;align-items:center;font-size:14.5px}
-  .navbtns a.txt{color:var(--muted);font-weight:500;padding:8px 12px;transition:color .18s}
-  .navbtns a.txt:hover{color:var(--ink)}
-  .navbtns .btn{min-height:38px;padding:0 16px;font-size:14px;border-radius:10px}
-  @media(max-width:860px){.navlinks{display:none}.navbtns .txt.login-lg{display:none}}
-  @media(max-width:520px){.navbtns .txt.join-lg{display:none}}
+  nav{position:sticky;top:0;z-index:60;background:transparent;transition:background .3s,border-color .3s,box-shadow .3s;border-bottom:1px solid transparent}
+  nav.stuck{background:rgba(250,250,248,.8);backdrop-filter:blur(14px);border-color:var(--border);box-shadow:0 1px 0 rgba(16,24,40,.02)}
+  nav .in{display:flex;align-items:center;gap:24px;height:58px;max-width:var(--maxw);margin:0 auto;padding:0 clamp(20px,4vw,32px)}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:16px;letter-spacing:-.02em}
+  .logo .mk{width:26px;height:26px;border-radius:8px;background:var(--text);color:#fff;display:grid;place-items:center;font-size:12.5px}
+  .navlinks{display:flex;gap:6px;margin:0 auto}
+  .navlinks a{font-size:14.5px;font-weight:500;color:var(--muted);padding:8px 12px;border-radius:8px;transition:color .18s,background .18s}
+  .navlinks a:hover{color:var(--text);background:var(--bg-2)}
+  .navbtns{display:flex;gap:6px;align-items:center}
+  .navbtns a.t{font-size:14.5px;font-weight:500;color:var(--muted);padding:8px 12px}
+  .navbtns a.t:hover{color:var(--text)}
+  @media(max-width:880px){.navlinks{display:none}.navbtns .t.login{display:none}}
+  @media(max-width:520px){.navbtns .t.join{display:none}}
 
-  /* reveal */
-  .reveal{opacity:0;transform:translateY(15px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+  section{padding:var(--sec) 0}
+  .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
   .reveal.in{opacity:1;transform:none}
-  .d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}.d4{transition-delay:.32s}
+  .r1{transition-delay:.06s}.r2{transition-delay:.12s}.r3{transition-delay:.18s}.r4{transition-delay:.24s}
 
-  /* one consistent spacing scale — sections 48(mobile)→96(desktop) */
-  section{padding:clamp(48px,8vw,96px) 0}
-  .bg-gray{background:var(--gray)}
-  .bg-ink{background:var(--ink);color:#fff}
-  /* stitch adjacent light sections with a single hairline for continuity */
-  main>section:not(.bg-ink)+section:not(.bg-ink):not(.bg-gray),
-  main>section.bg-gray+section:not(.bg-ink){border-top:1px solid var(--line)}
+  /* section heading block */
+  .sh{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:var(--s12)}
+  .sh h2{font-size:clamp(26px,3.4vw,40px);font-weight:900;letter-spacing:-.035em}
+  .sh p{color:var(--muted);font-size:15px;max-width:40ch}
 
   /* HERO */
-  .hero{padding:clamp(40px,6vw,76px) 0 clamp(44px,7vw,84px)}
-  .hero .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(30px,6vw,70px);align-items:center}
-  @media(max-width:880px){.hero .grid{grid-template-columns:1fr;gap:44px}}
-  .hero h1{font-size:clamp(40px,7vw,84px);font-weight:900;letter-spacing:-.045em;margin:18px 0 22px}
-  .hero h1 .b{display:block}
-  .hero h1 .muted{color:var(--faint)}
-  .hero .cta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:28px}
-  .blueprint{width:100%;height:auto;color:var(--ink)}
-  .blueprint .grid-l{stroke:var(--line-2)}
-  .blueprint .ln{stroke:var(--ink);fill:none}
-  .blueprint .soft{stroke:var(--faint);fill:none}
-  .blueprint .node{fill:#fff;stroke:var(--ink)}
-  .blueprint .accent{fill:var(--blue);stroke:var(--blue)}
-  .bp-draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 2.4s var(--ease) .3s forwards}
-  @keyframes draw{to{stroke-dashoffset:0}}
+  .hero{padding-top:clamp(40px,6vw,72px);padding-bottom:var(--sec)}
+  .hero .grid{display:grid;grid-template-columns:1.02fr .98fr;gap:clamp(28px,5vw,56px);align-items:center}
+  @media(max-width:940px){.hero .grid{grid-template-columns:1fr;gap:40px}}
+  .hero h1{font-size:clamp(40px,6.4vw,72px);font-weight:900;letter-spacing:-.045em;margin:16px 0 18px}
+  .hero h1 span{display:block}
+  .hero h1 .g{color:var(--accent)}
+  .hero .cta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:26px}
+  .hero .meta{display:flex;gap:18px;flex-wrap:wrap;margin-top:22px;color:var(--faint);font-size:13px}
+  .hero .meta b{color:var(--text);font-weight:600}
+  .hero .meta .d{color:var(--success)}
 
-  /* STATEMENT (dark rhythm pause) */
-  .statement{text-align:center}
-  .statement h2{font-size:clamp(28px,4.6vw,54px);font-weight:700;letter-spacing:-.03em;line-height:1.15;max-width:20ch;margin:0 auto}
-  .statement h2 .b{color:var(--blue)}
-  .statement p{color:rgba(255,255,255,.55);margin-top:22px;font-size:16px}
+  /* platform preview window */
+  .window{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden}
+  .win-bar{display:flex;align-items:center;gap:7px;padding:12px 14px;border-bottom:1px solid var(--border)}
+  .win-bar .dot{width:9px;height:9px;border-radius:50%;background:#E3E6EC}
+  .win-bar .u{margin-left:10px;font-size:12px;color:var(--faint);font-weight:500}
+  .win-body{position:relative;height:290px}
+  .screen{position:absolute;inset:0;padding:20px;opacity:0;transform:translateX(14px);transition:opacity .5s var(--ease),transform .5s var(--ease);pointer-events:none}
+  .screen.active{opacity:1;transform:none;pointer-events:auto}
+  .scr-tag{font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+  .scr-h{font-size:17px;font-weight:700;margin:6px 0 14px;letter-spacing:-.01em}
+  .field{border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--muted);margin-bottom:8px;background:var(--bg)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 12px}
+  .chip{font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent-d)}
+  .row{display:flex;align-items:center;gap:10px}
+  .avset{display:flex}
+  .av{width:30px;height:30px;border-radius:50%;background:var(--bg-2);border:2px solid var(--card);display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--muted);margin-left:-8px}
+  .av:first-child{margin-left:0}
+  .av.blue{background:var(--accent);color:#fff}
+  .bar{height:8px;border-radius:99px;background:var(--bg-2);overflow:hidden;margin:10px 0}
+  .bar>i{display:block;height:100%;background:var(--accent);border-radius:99px}
+  .miniStat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .miniStat .b{border:1px solid var(--border);border-radius:10px;padding:10px}
+  .miniStat .n{font-size:20px;font-weight:800;letter-spacing:-.02em}
+  .miniStat .l{font-size:11px;color:var(--muted)}
+  .badge{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:999px}
+  .badge.ok{background:#E9F8EF;color:var(--success)}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:6px}
+  .cal .c{aspect-ratio:1;border-radius:7px;background:var(--bg-2);display:grid;place-items:center;font-size:11px;color:var(--faint)}
+  .cal .c.on{background:var(--accent);color:#fff;font-weight:700}
+  .softbtn{margin-top:12px;font-size:13px;font-weight:600;color:#fff;background:var(--accent);border-radius:9px;padding:9px 14px;display:inline-block}
+  .dots{display:flex;gap:6px;justify-content:center;padding:12px}
+  .dots i{width:6px;height:6px;border-radius:50%;background:var(--border-2);transition:width .3s,background .3s}
+  .dots i.on{width:18px;background:var(--accent);border-radius:99px}
 
-  /* NUMBERS (typographic, no cards) */
-  .numrow{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line)}
-  @media(max-width:680px){.numrow{grid-template-columns:repeat(2,1fr)}}
-  .num{padding:26px 24px 6px;border-right:1px solid var(--line)}
-  .num:last-child{border-right:none}
-  @media(max-width:680px){.num:nth-child(2){border-right:none}}
-  .num .n{font-size:clamp(38px,5.4vw,60px);font-weight:900;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
-  .num .l{color:var(--muted);font-size:14.5px;margin-top:6px}
+  /* LIVE PREVIEW RAIL */
+  .rail{display:flex;gap:16px;overflow-x:auto;padding:4px 4px 18px;scroll-snap-type:x mandatory;-ms-overflow-style:none;scrollbar-width:none}
+  .rail::-webkit-scrollbar{display:none}
+  .pcard{scroll-snap-align:start;flex:0 0 min(320px,80vw);background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow .25s var(--ease),transform .25s var(--ease)}
+  .pcard:hover{box-shadow:var(--shadow);transform:translateY(-3px)}
+  .pcard .top{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .pcard .top .t{font-size:14px;font-weight:700}
+  .pcard .top .s{font-size:11px;color:var(--faint)}
+  .pcard .b{padding:16px;min-height:150px}
 
-  /* PROCESS (sticky heading + numbered list) */
-  .proc{display:grid;grid-template-columns:.8fr 1.2fr;gap:clamp(30px,6vw,72px);align-items:start}
-  @media(max-width:820px){.proc{grid-template-columns:1fr;gap:34px}}
-  .proc .stick{position:sticky;top:100px}
-  @media(max-width:820px){.proc .stick{position:static}}
-  .proc h2{font-size:clamp(28px,4vw,44px);font-weight:700;letter-spacing:-.03em}
-  .plist{border-top:1px solid var(--line)}
-  .pitem{display:grid;grid-template-columns:auto 1fr;gap:22px;padding:19px 2px;border-bottom:1px solid var(--line);transition:padding-left .3s var(--ease)}
-  .pitem:hover{padding-left:8px}
-  .pitem .no{font-size:14px;font-weight:600;color:var(--faint);font-variant-numeric:tabular-nums;padding-top:3px}
-  .pitem h3{font-size:19px;font-weight:600;letter-spacing:-.01em}
-  .pitem p{color:var(--muted);font-size:15px;margin-top:4px}
+  /* STATS */
+  .metrics{display:grid;grid-template-columns:repeat(6,1fr);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--card)}
+  @media(max-width:900px){.metrics{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:520px){.metrics{grid-template-columns:repeat(2,1fr)}}
+  .metric{padding:26px 22px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .metric .n{font-size:clamp(30px,3.4vw,42px);font-weight:900;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+  .metric .l{font-size:13px;color:var(--muted);margin-top:4px}
 
-  /* DOMAINS (magazine index) */
-  .domhead{display:flex;justify-content:space-between;align-items:baseline;gap:18px;flex-wrap:wrap;margin-bottom:8px}
-  .domhead h2{font-size:clamp(28px,4vw,44px);font-weight:700;letter-spacing:-.03em}
-  .index{columns:2;column-gap:clamp(30px,6vw,72px)}
-  @media(max-width:640px){.index{columns:1}}
-  .ix{display:flex;align-items:baseline;gap:14px;padding:17px 0;border-top:1px solid var(--line);break-inside:avoid;transition:color .2s}
-  .ix:hover{color:var(--blue)}
-  .ix .no{font-size:13px;color:var(--faint);font-variant-numeric:tabular-nums;width:26px;flex:none}
-  .ix .nm{font-size:18px;font-weight:600;letter-spacing:-.01em}
+  /* WHY — editorial rows */
+  .why{display:flex;flex-direction:column;gap:var(--s8)}
+  .wrow{display:grid;grid-template-columns:auto 1fr auto;gap:clamp(20px,4vw,52px);align-items:center;padding:var(--s8) 0;border-top:1px solid var(--border)}
+  .wrow .no{font-size:clamp(38px,5vw,64px);font-weight:900;letter-spacing:-.04em;color:var(--border-2)}
+  .wrow .txt h3{font-size:clamp(20px,2.4vw,26px);font-weight:800;letter-spacing:-.02em;margin-bottom:6px}
+  .wrow .txt p{color:var(--muted);font-size:15px;max-width:52ch}
+  .wrow .ill{color:var(--accent);opacity:.9}
+  @media(max-width:760px){.wrow{grid-template-columns:auto 1fr;gap:20px}.wrow .ill{display:none}}
 
-  /* PRINCIPLES (minimal flat blocks) */
-  .cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-  @media(max-width:820px){.cols3{grid-template-columns:1fr}}
-  .block{border:1px solid var(--line);border-radius:16px;padding:28px 26px;background:#fff;box-shadow:0 1px 2px rgba(11,13,18,.03);transition:box-shadow .28s var(--ease),transform .28s var(--ease),border-color .28s}
-  .block:hover{box-shadow:0 14px 34px -22px rgba(11,13,18,.28);transform:translateY(-3px);border-color:var(--line-2)}
-  .block .no{font-size:13px;font-weight:600;color:var(--blue);letter-spacing:.04em}
-  .block h3{font-size:20px;font-weight:600;letter-spacing:-.02em;margin:12px 0 8px}
-  .block p{color:var(--muted);font-size:15px}
+  /* JOURNEY timeline */
+  .tl{display:grid;grid-template-columns:1fr;gap:0;position:relative}
+  .tl .li{display:grid;grid-template-columns:120px 1fr;gap:22px;padding:16px 0;border-top:1px solid var(--border);align-items:baseline}
+  @media(max-width:620px){.tl .li{grid-template-columns:70px 1fr;gap:14px}}
+  .tl .step{font-size:13px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+  .tl .li h3{font-size:18px;font-weight:700;letter-spacing:-.01em}
+  .tl .li p{color:var(--muted);font-size:14px;margin-top:2px}
 
-  /* FINAL CTA (calm, centered) */
-  .final{text-align:center}
-  .final h2{font-size:clamp(32px,5vw,60px);font-weight:900;letter-spacing:-.04em;max-width:16ch;margin:0 auto}
-  .final p{color:var(--muted);margin:18px auto 30px;max-width:44ch}
-  .final .cta{display:inline-flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+  /* DOMAINS tiles */
+  .tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  @media(max-width:900px){.tiles{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:520px){.tiles{grid-template-columns:repeat(2,1fr)}}
+  .tile{display:flex;align-items:center;gap:11px;padding:16px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);transition:border-color .2s,box-shadow .2s,transform .2s}
+  .tile:hover{border-color:var(--accent);box-shadow:var(--shadow-sm);transform:translateY(-2px)}
+  .tile .ic{width:34px;height:34px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+  .tile .nm{font-size:14px;font-weight:600;letter-spacing:-.01em}
+
+  /* MENTORS */
+  .mentors{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  @media(max-width:900px){.mentors{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:520px){.mentors{grid-template-columns:1fr}}
+  .mcard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:22px;box-shadow:var(--shadow-sm);transition:box-shadow .25s,transform .25s}
+  .mcard:hover{box-shadow:var(--shadow);transform:translateY(-3px)}
+  .mono{width:52px;height:52px;border-radius:50%;background:var(--bg-2);display:grid;place-items:center;font-size:18px;font-weight:800;color:var(--muted);margin-bottom:14px}
+  .mcard h3{font-size:16px;font-weight:700}
+  .mcard .role{font-size:13px;color:var(--accent);font-weight:600;margin-top:2px}
+  .mcard p{font-size:13.5px;color:var(--muted);margin-top:10px}
+
+  /* SUCCESS / impact */
+  .impact{background:var(--text);color:#fff;border-radius:var(--r-lg);padding:clamp(32px,5vw,56px)}
+  .impact .lab{color:rgba(255,255,255,.55);letter-spacing:.14em;text-transform:uppercase;font-size:12.5px;font-weight:600}
+  .impact h2{font-size:clamp(24px,3.4vw,38px);font-weight:900;letter-spacing:-.03em;margin:12px 0 26px;max-width:22ch}
+  .igrid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+  @media(max-width:760px){.igrid{grid-template-columns:repeat(2,1fr)}}
+  .igrid .n{font-size:clamp(30px,4vw,48px);font-weight:900;letter-spacing:-.04em}
+  .igrid .l{color:rgba(255,255,255,.6);font-size:13.5px;margin-top:4px}
+
+  /* FAQ */
+  .faq{display:grid;grid-template-columns:1fr;gap:0;max-width:820px}
+  .qa{border-top:1px solid var(--border)}
+  .qa summary{list-style:none;cursor:pointer;padding:18px 0;font-weight:600;font-size:16px;display:flex;justify-content:space-between;gap:14px;align-items:center}
+  .qa summary::-webkit-details-marker{display:none}
+  .qa .p{color:var(--accent);font-size:22px;transition:transform .2s;flex:none;line-height:1}
+  .qa[open] .p{transform:rotate(45deg)}
+  .qa .a{color:var(--muted);font-size:14.5px;padding:0 0 18px;max-width:70ch}
+
+  /* FINAL CTA */
+  .final{border:1px solid var(--border);border-radius:var(--r-lg);background:var(--card);box-shadow:var(--shadow);padding:clamp(36px,5vw,60px);text-align:center}
+  .final h2{font-size:clamp(28px,4.2vw,50px);font-weight:900;letter-spacing:-.04em;max-width:18ch;margin:0 auto}
+  .final p{color:var(--muted);margin:14px auto 26px;max-width:44ch}
+  .final .cta{display:inline-flex;gap:10px;flex-wrap:wrap;justify-content:center}
 
   /* footer */
-  footer{background:var(--ink);color:rgba(255,255,255,.66);padding:clamp(48px,6vw,72px) 0 30px}
+  footer{border-top:1px solid var(--border);padding:var(--s16) 0 var(--s12);margin-top:var(--sec)}
   .fgrid{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr;gap:28px}
   @media(max-width:720px){.fgrid{grid-template-columns:1fr 1fr}}
-  footer .logo{color:#fff;margin-bottom:12px}
-  footer .logo .mk{background:#fff;color:var(--ink)}
-  footer h4{color:rgba(255,255,255,.5);font-size:12.5px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:13px;font-weight:600}
-  footer a{display:block;color:rgba(255,255,255,.66);font-size:14.5px;padding:5px 0}
-  footer a:hover{color:#fff}
-  .fbot{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:38px;padding-top:22px;border-top:1px solid rgba(255,255,255,.12);font-size:13px;color:rgba(255,255,255,.45)}
+  footer h4{font-size:12.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);margin-bottom:12px;font-weight:600}
+  footer a{display:block;color:var(--muted);font-size:14.5px;padding:5px 0}
+  footer a:hover{color:var(--accent)}
+  .fbot{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:var(--s12);padding-top:var(--s6);border-top:1px solid var(--border);font-size:13px;color:var(--faint)}
 
-  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}.bp-draw{stroke-dashoffset:0}}
-  :focus-visible{outline:2px solid var(--blue);outline-offset:3px;border-radius:6px}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}.screen{transition:none}}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
 </style>
 </head>
 <body id="top">
@@ -157,12 +211,12 @@
   <div class="in">
     <a class="logo" href="#top"><span class="mk">S</span> SIH 2026</a>
     <div class="navlinks">
-      <a href="#approach">Approach</a><a href="#process">Process</a><a href="#domains">Domains</a><a href="#principles">Why us</a>
+      <a href="#platform">Platform</a><a href="#journey">Journey</a><a href="#domains">Domains</a><a href="#mentors">Mentors</a><a href="#faq">FAQ</a>
     </div>
     <div class="navbtns">
-      <a class="txt login-lg" href="/apply.html?login">Login</a>
-      <a class="txt join-lg" href="/apply.html?join">Join team</a>
-      <a class="btn ink" href="/apply.html">Apply</a>
+      <a class="t login" href="/apply.html?login">Login</a>
+      <a class="t join" href="/apply.html?join">Join team</a>
+      <a class="btn primary sm" href="/apply.html">Apply</a>
     </div>
   </div>
 </nav>
@@ -170,150 +224,226 @@
 <main>
 
 <!-- HERO -->
-<header class="hero"><div class="wrap grid">
+<header class="hero"><div class="container grid">
   <div>
-    <div class="label reveal in">Smart India Hackathon 2026 — Rajasthan</div>
-    <h1 class="reveal in d1"><span class="b">Build products.</span><span class="b">Solve problems.</span><span class="b muted">Create impact.</span></h1>
-    <p class="lede reveal in d2">A quiet, well-run home for people who build. Apply, meet your team, and take a real idea all the way to the national stage.</p>
-    <div class="cta reveal in d3">
-      <a class="btn solid" href="/apply.html">Apply now</a>
-      <a class="btn quiet" href="/apply.html?join"><span class="u">Join an existing team</span> <span class="arw">→</span></a>
+    <div class="label reveal in">Smart India Hackathon 2026</div>
+    <h1 class="reveal in r1"><span>Build for India.</span><span>Solve real problems.</span><span class="g">Lead innovation.</span></h1>
+    <p class="lede reveal in r2">The digital headquarters for our Smart India Hackathon community. Apply, get matched into a team, and take a real idea to the national stage — all in one place.</p>
+    <div class="cta reveal in r3">
+      <a class="btn primary" href="/apply.html">Apply now</a>
+      <a class="btn secondary" href="/apply.html?join">Join team</a>
+      <a class="btn tertiary" href="#journey">Explore journey <span class="arw">→</span></a>
     </div>
+    <div class="meta reveal in r4"><span><span class="d">●</span> Portal live</span><span><b>6</b> members / team</span><span><b>8-week</b> sprint</span><span><b>National</b> finals</span></div>
   </div>
-  <div class="reveal in d2" aria-hidden="true">
-    <svg class="blueprint" viewBox="0 0 440 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- faint grid -->
-      <g class="grid-l" stroke-width="1" opacity=".7">
-        <path d="M40 40H400M40 120H400M40 200H400M40 280H400M40 360H400"/>
-        <path d="M40 40V360M120 40V360M200 40V360M280 40V360M360 40V360"/>
-      </g>
-      <!-- connecting flow (draws in) -->
-      <path class="ln bp-draw" stroke-width="1.6" pathLength="1" d="M80 300 L160 200 L240 240 L320 120"/>
-      <path class="soft bp-draw" stroke-width="1.4" pathLength="1" d="M80 300 L200 300 L200 120 L320 120" style="animation-delay:.6s"/>
-      <!-- isometric-ish frame -->
-      <path class="soft" stroke-width="1.4" d="M120 160 L200 120 L280 160 L280 240 L200 280 L120 240 Z"/>
-      <path class="soft" stroke-width="1.4" d="M200 120 V280 M120 160 L280 160 M120 240 L280 240"/>
-      <!-- nodes -->
-      <circle class="node" cx="80" cy="300" r="6" stroke-width="1.6"/>
-      <circle class="node" cx="160" cy="200" r="6" stroke-width="1.6"/>
-      <circle class="node" cx="240" cy="240" r="6" stroke-width="1.6"/>
-      <circle class="accent" cx="320" cy="120" r="7"/>
-    </svg>
+  <div class="reveal in r2">
+    <div class="window" aria-hidden="true">
+      <div class="win-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="u" id="winUrl">sih2026 · registration</span></div>
+      <div class="win-body" id="winBody">
+        <!-- screens injected by JS -->
+      </div>
+      <div class="dots" id="winDots"></div>
+    </div>
   </div>
 </div></header>
 
-<!-- STATEMENT (dark pause) -->
-<section id="approach" class="bg-ink"><div class="wrap statement">
-  <div class="label reveal" style="color:rgba(255,255,255,.4);margin-bottom:22px">The approach</div>
-  <h2 class="reveal d1">We don't chase every idea. We pick the ones we can <span class="b">genuinely win</span> — then build them properly.</h2>
-  <p class="reveal d2">Fewer teams. Sharper problems. Real mentorship.</p>
+<!-- LIVE PLATFORM PREVIEW -->
+<section id="platform"><div class="container">
+  <div class="sh reveal"><div><div class="label" style="margin-bottom:10px">The platform</div><h2>One place to run the whole hackathon.</h2></div><p>From application to the finale — every step lives inside a single, well-run workspace.</p></div>
+  <div class="rail reveal r1" id="rail"></div>
 </div></section>
 
-<!-- NUMBERS -->
-<section><div class="wrap">
-  <div class="label reveal" style="margin-bottom:26px">By the numbers</div>
-  <div class="numrow" id="numRow">
-    <div class="num reveal"><div class="n" data-count="0">0</div><div class="l">Students registered</div></div>
-    <div class="num reveal d1"><div class="n" data-count="0">0</div><div class="l">Teams created</div></div>
-    <div class="num reveal d2"><div class="n" data-count="0">0</div><div class="l">Mentors guiding</div></div>
-    <div class="num reveal d3"><div class="n" data-count="6" data-suffix="+">0</div><div class="l">National wins targeted</div></div>
+<!-- STATISTICS -->
+<section style="padding-top:0"><div class="container">
+  <div class="metrics reveal" id="metrics">
+    <div class="metric"><div class="n" data-count="0">0</div><div class="l">Registered students</div></div>
+    <div class="metric"><div class="n" data-count="0">0</div><div class="l">Teams created</div></div>
+    <div class="metric"><div class="n" data-count="0">0</div><div class="l">Mentors</div></div>
+    <div class="metric"><div class="n" data-count="0">0</div><div class="l">Projects building</div></div>
+    <div class="metric"><div class="n" data-count="0">0</div><div class="l">Ideas curated</div></div>
+    <div class="metric"><div class="n" data-count="6" data-suffix="+">0</div><div class="l">National wins targeted</div></div>
   </div>
 </div></section>
 
-<!-- PROCESS -->
-<section id="process" class="bg-gray"><div class="wrap proc">
-  <div class="stick">
-    <div class="label reveal" style="margin-bottom:16px">The process</div>
-    <h2 class="reveal d1">From sign-up<br/>to the finale.</h2>
-    <p class="lede reveal d2" style="margin-top:18px">Eight clear steps. No confusion, no chaos — you always know what's next.</p>
+<!-- WHY -->
+<section><div class="container">
+  <div class="sh reveal"><div><div class="label" style="margin-bottom:10px">Why build with us</div><h2>Fewer teams. Sharper problems.<br/>Real mentorship.</h2></div></div>
+  <div class="why">
+    <div class="wrow reveal"><div class="no">01</div><div class="txt"><h3>Real mentorship</h3><p>Guidance from people who've stood on the finale stage — not generic advice from a slide deck.</p></div><div class="ill"><svg width="72" height="72" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="24" cy="16" r="7"/><path d="M10 40c0-8 6-12 14-12s14 4 14 12"/></svg></div></div>
+    <div class="wrow reveal r1"><div class="no">02</div><div class="txt"><h3>The right team</h3><p>Balanced six-member teams, matched by strength. You build with people who push you further.</p></div><div class="ill"><svg width="72" height="72" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="16" cy="18" r="5"/><circle cx="32" cy="18" r="5"/><path d="M6 38c0-6 4-9 10-9s10 3 10 9M26 34c1-4 4-6 8-6s7 2 8 6"/></svg></div></div>
+    <div class="wrow reveal r2"><div class="no">03</div><div class="txt"><h3>Problems that matter</h3><p>Real government and industry challenges — work that's genuinely worth putting your name on.</p></div><div class="ill"><svg width="72" height="72" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M24 6l4 12 12 1-9 8 3 12-10-7-10 7 3-12-9-8 12-1z"/></svg></div></div>
   </div>
-  <div class="plist reveal d1" id="procList"></div>
+</div></section>
+
+<!-- JOURNEY -->
+<section id="journey"><div class="container">
+  <div class="sh reveal"><div><div class="label" style="margin-bottom:10px">How SIH works</div><h2>Eight steps to the national stage.</h2></div><p>You always know exactly what's next — no confusion, no chaos.</p></div>
+  <div class="tl reveal r1" id="timeline"></div>
 </div></section>
 
 <!-- DOMAINS -->
-<section id="domains"><div class="wrap">
-  <div class="domhead">
-    <h2 class="reveal">Ten domains.<br/>One that's yours.</h2>
-    <div class="label reveal d1">Choose your arena</div>
-  </div>
-  <div class="index reveal d1" id="domIndex"></div>
+<section id="domains"><div class="container">
+  <div class="sh reveal"><div><div class="label" style="margin-bottom:10px">Innovation domains</div><h2>Choose your arena.</h2></div><p>Ten domains spanning real government and industry challenges.</p></div>
+  <div class="tiles reveal r1" id="tiles"></div>
 </div></section>
 
-<!-- PRINCIPLES -->
-<section id="principles" class="bg-gray"><div class="wrap">
-  <div class="label reveal" style="margin-bottom:26px">Why build with us</div>
-  <div class="cols3">
-    <div class="block reveal"><div class="no">01</div><h3>Real mentorship</h3><p>Guidance from people who've stood on the finale stage — not generic advice.</p></div>
-    <div class="block reveal d1"><div class="no">02</div><h3>The right team</h3><p>Balanced six-member teams, matched by strength. You build with people who push you.</p></div>
-    <div class="block reveal d2"><div class="no">03</div><h3>Problems that matter</h3><p>Real government and industry challenges — work that's worth putting your name on.</p></div>
+<!-- MENTORS -->
+<section id="mentors"><div class="container">
+  <div class="sh reveal"><div><div class="label" style="margin-bottom:10px">Mentorship</div><h2>Guidance that has been there.</h2></div><p>Faculty, industry, and alumni mentors — matched to your domain.</p></div>
+  <div class="mentors reveal r1" id="mentorGrid"></div>
+</div></section>
+
+<!-- SUCCESS / IMPACT -->
+<section><div class="container">
+  <div class="impact reveal">
+    <div class="lab">The 2026 commitment</div>
+    <h2>Not here to participate. Here to win — measurably.</h2>
+    <div class="igrid">
+      <div><div class="n">30+</div><div class="l">Teams building</div></div>
+      <div><div class="n">6+</div><div class="l">National wins targeted</div></div>
+      <div><div class="n">31</div><div class="l">Curated ideas</div></div>
+      <div><div class="n">100%</div><div class="l">Teams mentored</div></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- FAQ -->
+<section id="faq"><div class="container">
+  <div class="sh reveal"><div><div class="label" style="margin-bottom:10px">Questions</div><h2>Everything you need to know.</h2></div></div>
+  <div class="faq reveal r1">
+    <details class="qa"><summary>Who can apply? <span class="p">+</span></summary><div class="a">Any student from the college — developers, designers, researchers, and presenters are all needed.</div></details>
+    <details class="qa"><summary>Can first-year students join? <span class="p">+</span></summary><div class="a">Yes. Skills and drive matter more than year. Apply and show what you can do in the interview.</div></details>
+    <details class="qa"><summary>Can I join without a team? <span class="p">+</span></summary><div class="a">Absolutely — apply solo and get matched. Already have a team? Your captain shares a Team ID so the rest join instantly.</div></details>
+    <details class="qa"><summary>How are teams formed? <span class="p">+</span></summary><div class="a">After interviews, the core team assigns selected students into balanced six-member teams, with at least one female member as SIH requires.</div></details>
+    <details class="qa"><summary>What happens after I register? <span class="p">+</span></summary><div class="a">You'll track your status in the portal, then see your interview slot — time and location or meeting link.</div></details>
+    <details class="qa"><summary>How are interviews conducted? <span class="p">+</span></summary><div class="a">On campus or over a video call — a short conversation about your skills and ideas.</div></details>
   </div>
 </div></section>
 
 <!-- FINAL CTA -->
-<section class="final"><div class="wrap">
-  <div class="label reveal" style="margin-bottom:20px">Applications open</div>
-  <h2 class="reveal d1">Start where serious builders start.</h2>
-  <p class="reveal d2">Take the first step toward the SIH 2026 Grand Finale.</p>
-  <div class="cta reveal d3">
-    <a class="btn solid" href="/apply.html">Apply now</a>
-    <a class="btn quiet" href="/apply.html?join"><span class="u">Join a team</span> <span class="arw">→</span></a>
-    <a class="btn quiet" href="/apply.html?login"><span class="u">Login</span></a>
+<section style="padding-top:0"><div class="container">
+  <div class="final reveal">
+    <div class="label" style="margin-bottom:14px">Applications open</div>
+    <h2>Start where serious builders start.</h2>
+    <p>Take the first step toward the SIH 2026 Grand Finale.</p>
+    <div class="cta">
+      <a class="btn primary" href="/apply.html">Apply now</a>
+      <a class="btn secondary" href="/apply.html?join">Join a team</a>
+      <a class="btn tertiary" href="/apply.html?login">Login <span class="arw">→</span></a>
+    </div>
   </div>
 </div></section>
 
 </main>
 
-<footer><div class="wrap">
+<footer><div class="container">
   <div class="fgrid">
     <div>
       <a class="logo" href="#top"><span class="mk">S</span> SIH 2026 Portal</a>
-      <p style="font-size:14.5px;max-width:32ch">A quiet, well-run home for our college's Smart India Hackathon community.</p>
+      <p class="muted" style="font-size:14.5px;max-width:32ch;margin-top:12px">The digital headquarters for our college's Smart India Hackathon community.</p>
     </div>
     <div><h4>Get started</h4><a href="/apply.html">Apply</a><a href="/apply.html?join">Join team</a><a href="/apply.html?login">Login</a></div>
-    <div><h4>Explore</h4><a href="#process">Process</a><a href="#domains">Domains</a><a href="#principles">Why us</a></div>
-    <div><h4>More</h4><a href="https://www.sih.gov.in/" target="_blank" rel="noopener">Official SIH</a><a href="#">Privacy</a><a href="#">Terms</a></div>
+    <div><h4>Explore</h4><a href="#platform">Platform</a><a href="#journey">Journey</a><a href="#domains">Domains</a><a href="#mentors">Mentors</a></div>
+    <div><h4>More</h4><a href="https://www.sih.gov.in/" target="_blank" rel="noopener">Official SIH</a><a href="#faq">FAQ</a><a href="#">Privacy</a><a href="#">Terms</a></div>
   </div>
   <div class="fbot"><span>© 2026 SIH 2026 Portal.</span><span>Built for the community.</span></div>
 </div></footer>
 
 <script>
-// nav edge on scroll
-var nav=document.getElementById('nav');
-addEventListener('scroll',function(){nav.classList.toggle('edge',window.scrollY>12);},{passive:true});
+var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// process list
+/* ---------- hero platform preview (rotating software screens) ---------- */
+var SCREENS=[
+  {u:'registration',t:'Student Registration',html:'<div class="scr-tag">Apply</div><div class="scr-h">Create your application</div><div class="field">Full name — Aarav Sharma</div><div class="field">Email — aarav@college.edu</div><div class="chips"><span class="chip">React</span><span class="chip">Node</span><span class="chip">UI design</span></div><span class="softbtn">Submit application</span>'},
+  {u:'interview',t:'Interview Schedule',html:'<div class="scr-tag">Scheduled</div><div class="scr-h">Interview · 12 Aug, 5:00 PM</div><div class="cal"><div class="c">M</div><div class="c">T</div><div class="c">W</div><div class="c">T</div><div class="c">F</div><div class="c">S</div><div class="c">S</div><div class="c">9</div><div class="c">10</div><div class="c">11</div><div class="c on">12</div><div class="c">13</div><div class="c">14</div><div class="c">15</div></div><div class="row" style="margin-top:12px;color:var(--muted);font-size:13px">📍 Innovation Lab · Block C</div>'},
+  {u:'team-builder',t:'Team Builder',html:'<div class="scr-tag">Team · SIH-07</div><div class="scr-h">Six members, one workspace</div><div class="avset">'+'<span class="av blue">AS</span><span class="av">IV</span><span class="av">RG</span><span class="av">MN</span><span class="av">KP</span><span class="av">SR</span>'+'</div><div class="row" style="margin-top:14px;gap:8px"><span class="chip">1 female ✓</span><span class="chip">Roles set ✓</span></div>'},
+  {u:'project',t:'Project Progress',html:'<div class="scr-tag">Week 4 of 8</div><div class="scr-h">RakshaNet — 62% complete</div><div class="bar"><i style="width:62%"></i></div><div class="row" style="justify-content:space-between;font-size:13px;color:var(--muted)"><span>✓ Roster</span><span>✓ PS locked</span><span>◐ Demo</span></div>'},
+  {u:'mentor',t:'Mentor Assignment',html:'<div class="scr-tag">Mentorship</div><div class="scr-h">Mentor assigned</div><div class="row" style="gap:12px"><span class="av" style="width:40px;height:40px;font-size:14px">RK</span><div><div style="font-weight:700;font-size:14px">Faculty Mentor</div><div style="font-size:12px;color:var(--muted)">Disaster Management domain</div></div></div><span class="badge ok" style="margin-top:14px">● Reviewing your Week-4 submission</span>'},
+  {u:'dashboard',t:'Live Dashboard',html:'<div class="scr-tag">Overview</div><div class="scr-h">Team dashboard</div><div class="miniStat"><div class="b"><div class="n">62%</div><div class="l">Progress</div></div><div class="b"><div class="n">9.6%</div><div class="l">Odds</div></div><div class="b"><div class="n">3</div><div class="l">Approved</div></div></div>'},
+  {u:'selection',t:'Selection Status',html:'<div class="scr-tag">Result</div><div class="scr-h">You made it through</div><span class="badge ok" style="font-size:14px;padding:10px 16px">✓ Selected — Team SIH-07</span><div style="margin-top:14px;font-size:13px;color:var(--muted)">Credentials sent · agreement signed</div>'}
+];
+(function(){
+  var body=document.getElementById('winBody'),dotsEl=document.getElementById('winDots'),urlEl=document.getElementById('winUrl');
+  body.innerHTML=SCREENS.map(function(s,i){return '<div class="screen'+(i===0?' active':'')+'">'+s.html+'</div>';}).join('');
+  dotsEl.innerHTML=SCREENS.map(function(s,i){return '<i class="'+(i===0?'on':'')+'"></i>';}).join('');
+  var screens=body.querySelectorAll('.screen'),dots=dotsEl.querySelectorAll('i'),cur=0;
+  function go(n){screens[cur].classList.remove('active');dots[cur].classList.remove('on');cur=n;screens[cur].classList.add('active');dots[cur].classList.add('on');urlEl.textContent='sih2026 · '+SCREENS[cur].u;}
+  if(!reduce)setInterval(function(){go((cur+1)%SCREENS.length);},3200);
+})();
+
+/* ---------- live platform preview rail ---------- */
+var RAIL=[
+  {t:'Student Application',s:'Applicant',b:'<div class="field">Name · Skills · Own idea?</div><div class="chips"><span class="chip">Applied</span></div><div class="bar"><i style="width:20%"></i></div>'},
+  {t:'Team Workspace',s:'Team',b:'<div class="avset"><span class="av blue">AS</span><span class="av">IV</span><span class="av">RG</span><span class="av">+3</span></div><div style="margin-top:12px;font-size:13px;color:var(--muted)">Shared setup · chat · targets</div>'},
+  {t:'Interview Calendar',s:'Core team',b:'<div class="cal"><div class="c">9</div><div class="c">10</div><div class="c on">12</div><div class="c">13</div><div class="c">14</div><div class="c">15</div><div class="c">16</div></div>'},
+  {t:'Project Tracker',s:'Team',b:'<div style="font-size:13px;color:var(--muted);margin-bottom:6px">Week 4 · 62%</div><div class="bar"><i style="width:62%"></i></div><div class="row" style="gap:8px"><span class="chip">✓ W1</span><span class="chip">✓ W2</span></div>'},
+  {t:'Mentor Review',s:'Core team',b:'<span class="badge ok">● Needs review</span><div style="margin-top:12px;font-size:13px;color:var(--muted)">Approve or request changes with feedback.</div>'},
+  {t:'Dashboard',s:'Core team',b:'<div class="miniStat"><div class="b"><div class="n">30</div><div class="l">Teams</div></div><div class="b"><div class="n">12</div><div class="l">Review</div></div><div class="b"><div class="n">6+</div><div class="l">Target</div></div></div>'}
+];
+document.getElementById('rail').innerHTML=RAIL.map(function(c){return '<div class="pcard"><div class="top"><span class="t">'+c.t+'</span><span class="s">'+c.s+'</span></div><div class="b">'+c.b+'</div></div>';}).join('');
+
+/* ---------- journey timeline ---------- */
 var STEPS=[
   ['Registration','Apply with your details, skills, and idea.'],
-  ['Application review','We read every application with care.'],
   ['Interview','A short conversation — on campus or online.'],
   ['Selection','Cleared students receive a Team ID and password.'],
   ['Team formation','Six members, one shared workspace.'],
   ['Development','Build weekly, with mentors alongside.'],
   ['Internal review','Honest feedback. Iterate. Polish.'],
-  ['SIH submission','Submit early and compete nationally.']
+  ['Final submission','Submit early and compete nationally.'],
+  ['National finals','Represent the college on the SIH stage.']
 ];
-document.getElementById('procList').innerHTML=STEPS.map(function(s,i){return '<div class="pitem"><div class="no">'+String(i+1).padStart(2,'0')+'</div><div><h3>'+s[0]+'</h3><p>'+s[1]+'</p></div></div>';}).join('');
+document.getElementById('timeline').innerHTML=STEPS.map(function(s,i){return '<div class="li"><div class="step">Step '+String(i+1).padStart(2,'0')+'</div><div><h3>'+s[0]+'</h3><p>'+s[1]+'</p></div></div>';}).join('');
 
-// domains index
-var DOMAINS=['Artificial Intelligence','Cyber Security','Healthcare','Agriculture','Education','Internet of Things','Blockchain','FinTech','Automation','Sustainability'];
-document.getElementById('domIndex').innerHTML=DOMAINS.map(function(d,i){return '<div class="ix"><span class="no">'+String(i+1).padStart(2,'0')+'</span><span class="nm">'+d+'</span></div>';}).join('');
+/* ---------- domains ---------- */
+function DI(p){return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg>';}
+var DOMAINS=[
+  ['Artificial Intelligence','<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>'],
+  ['Cyber Security','<path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/>'],
+  ['Healthcare','<path d="M12 21s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 11c0 5.5-7 10-7 10z"/>'],
+  ['Agriculture','<path d="M12 21V9M12 9c0-3 2-5 5-5 0 3-2 5-5 5zM12 12c0-3-2-5-5-5 0 3 2 5 5 5z"/>'],
+  ['Education','<path d="M3 8l9-4 9 4-9 4-9-4z"/><path d="M7 10v5c0 1 2.5 3 5 3s5-2 5-3v-5"/>'],
+  ['IoT','<rect x="4" y="9" width="16" height="10" rx="2"/><path d="M8 9V6a4 4 0 018 0v3"/>'],
+  ['Blockchain','<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><path d="M10 6.5h4a2 2 0 012 2v5.5"/>'],
+  ['FinTech','<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 15h4"/>'],
+  ['Automation','<circle cx="12" cy="12" r="3"/><path d="M12 4v2M12 18v2M4 12h2M18 12h2"/>'],
+  ['Sustainability','<path d="M12 21c5-1 8-5 8-10 0-1-.2-2-.5-3-2 3-5 3-8 4s-4 4-3.5 8c1 .7 2.5 1 4 1z"/>']
+];
+document.getElementById('tiles').innerHTML=DOMAINS.map(function(d){return '<div class="tile"><span class="ic">'+DI(d[1])+'</span><span class="nm">'+d[0]+'</span></div>';}).join('');
 
-// reveal
-var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.16});
+/* ---------- mentors (role-based placeholders) ---------- */
+var MENTORS=[
+  ['FM','Faculty Mentor','Computer Science','Guides architecture, scope and the technical story.'],
+  ['IM','Industry Mentor','Product & Engineering','Real-world feedback on what actually ships.'],
+  ['AL','Alumni Mentor','SIH Finalist','Been on the stage — knows what judges look for.'],
+  ['DM','Domain Mentor','Government Tech','Deep context on the problem you are solving.']
+];
+document.getElementById('mentorGrid').innerHTML=MENTORS.map(function(m){return '<div class="mcard"><div class="mono">'+m[0]+'</div><h3>'+m[1]+'</h3><div class="role">'+m[2]+'</div><p>'+m[3]+'</p></div>';}).join('');
+
+/* ---------- nav blur on scroll ---------- */
+var nav=document.getElementById('nav');
+addEventListener('scroll',function(){nav.classList.toggle('stuck',window.scrollY>10);},{passive:true});
+
+/* ---------- reveal ---------- */
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.14});
 document.querySelectorAll('.reveal').forEach(function(el){if(!el.classList.contains('in'))io.observe(el);});
 
-// count-up
+/* ---------- count-up (once) ---------- */
 function countUp(el,to,suffix){var s=performance.now(),dur=1400;function t(n){var p=Math.min(1,(n-s)/dur),e=1-Math.pow(1-p,3);el.textContent=Math.round(to*e)+(suffix||'');if(p<1)requestAnimationFrame(t);}requestAnimationFrame(t);}
 var seen=new WeakSet();
-var cio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting&&!seen.has(e.target)){seen.add(e.target);countUp(e.target,+e.target.getAttribute('data-count'),e.target.getAttribute('data-suffix')||'');cio.unobserve(e.target);}});},{threshold:.6});
+var cio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting&&!seen.has(e.target)){seen.add(e.target);countUp(e.target,+e.target.getAttribute('data-count'),e.target.getAttribute('data-suffix')||'');cio.unobserve(e.target);}});},{threshold:.5});
 document.querySelectorAll('[data-count]').forEach(function(el){cio.observe(el);});
 
-// live stats
-fetch('/api/stats').then(function(r){return r.json();}).then(function(s){
-  var els=document.querySelectorAll('#numRow .n');
-  var vals=[s.registered||0,s.teams||0,s.mentors||0,s.winTarget||6];
-  els.forEach(function(el,i){el.setAttribute('data-count',vals[i]);});
-}).catch(function(){});
+/* ---------- live metrics (existing endpoints, read-only) ---------- */
+Promise.all([
+  fetch('/api/stats').then(function(r){return r.json();}).catch(function(){return {};}),
+  fetch('/api/ideas').then(function(r){return r.json();}).catch(function(){return [];})
+]).then(function(res){
+  var s=res[0]||{},ideas=(res[1]||[]).length||31;
+  var els=document.querySelectorAll('#metrics .n');
+  var vals=[s.registered||0,s.teams||0,s.mentors||0,s.projects||0,ideas,s.winTarget||6];
+  els.forEach(function(el,i){el.setAttribute('data-count',vals[i]);if(i===4){el.textContent='0';}});
+});
 </script>
 </body>
 </html>

@@ -9,16 +9,16 @@
 <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet" />
 <style>
   :root{
-    --bg:#F8F7F4; --bg-2:#F4F5F2; --card:#FFFFFF; --text:#111827; --muted:#667085; --faint:#98A2B3;
-    --accent:#1E40AF; --accent-d:#1D4ED8; --accent-soft:#EEF3FF; --success:#16A34A;
-    --border:#E4E7EC; --border-2:#DFE3EA; --shadow:0 10px 40px rgba(16,24,40,.06); --shadow-sm:0 1px 2px rgba(16,24,40,.05);
+    --bg:#F7F6F2; --bg-2:#F4F5F2; --card:#FFFFFF; --text:#111827; --muted:#667085; --faint:#98A2B3;
+    --accent:#173B7A; --accent-d:#123267; --accent-soft:#EEF3FF; --success:#16805B;
+    --border:#DDE2E8; --border-2:#DFE3EA; --shadow:0 10px 40px rgba(16,24,40,.06); --shadow-sm:0 1px 2px rgba(16,24,40,.05);
     /* spacing scale — 4/8/12/16/24/32/48/64/80/96/128 */
     --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s6:24px;--s8:32px;--s12:48px;--s16:64px;--s20:80px;--s24:96px;--s32:128px;
     --r:14px; --r-sm:12px; --r-lg:20px;
     --sans:"Satoshi",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --ease:cubic-bezier(.22,.61,.36,1);
-    --maxw:1160px; --panel:#F2F4F7; --divider:#EAECF0; --sec:clamp(24px,2.8vw,32px);
-    --navy:#0E1A34; --highlight:#EA580C;
+    --maxw:1160px; --panel:#F0F2F5; --divider:#EAECF0; --sec:clamp(24px,2.8vw,32px);
+    --navy:#0B1220; --highlight:#E87519;
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
@@ -34,7 +34,7 @@
   /* buttons — one system: primary / secondary / tertiary */
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--sans);font-weight:600;font-size:15px;min-height:56px;padding:0 24px;border-radius:16px;border:1px solid transparent;cursor:pointer;transition:transform .2s var(--ease),background .2s,color .2s,border-color .2s,box-shadow .2s}
   .btn.sm{min-height:44px;padding:0 18px;border-radius:12px}
-  .btn.primary{background:var(--accent);color:#fff;box-shadow:0 6px 16px -8px rgba(30,64,175,.55)}
+  .btn.primary{background:var(--accent);color:#fff;box-shadow:0 6px 16px -8px rgba(23,59,122,.55)}
   .btn.primary:hover{background:var(--accent-d);transform:translateY(-1px)}
   .btn.secondary{background:var(--card);color:var(--text);border-color:var(--border-2)}
   .btn.secondary:hover{border-color:var(--text);transform:translateY(-1px)}
@@ -121,7 +121,7 @@
   .stepper .st.done::before,.stepper .st.cur::before{background:var(--accent)}
   .stepper .st .n{width:16px;height:16px;border-radius:50%;background:var(--card);border:2px solid var(--border);z-index:1}
   .stepper .st.done .n{background:var(--accent);border-color:var(--accent)}
-  .stepper .st.cur .n{border-color:var(--accent);box-shadow:0 0 0 4px rgba(30,64,175,.16)}
+  .stepper .st.cur .n{border-color:var(--accent);box-shadow:0 0 0 4px rgba(23,59,122,.16)}
   .stepper .st .lb{font-size:9px;color:var(--muted);text-align:center;line-height:1.15;letter-spacing:-.01em}
   .stepper .st.cur .lb{color:var(--accent);font-weight:700}
   .sbar{height:7px;border-radius:99px;background:var(--bg);border:1px solid var(--border);overflow:hidden}
@@ -309,7 +309,7 @@
 </div></section>
 
 <!-- WHY -->
-<section><div class="container">
+<section class="panel"><div class="container">
   <div class="sh reveal"><div><div class="label" style="margin-bottom:10px">Why build with us</div><h2>Fewer teams. Sharper problems.<br/>Real mentorship.</h2></div></div>
   <div class="why">
     <div class="wrow reveal"><div class="no">01</div><div class="txt"><h3>Real mentorship</h3><p>Guidance from people who've stood on the finale stage — not generic advice from a slide deck.</p></div><div class="ill"><svg width="72" height="72" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="24" cy="16" r="7"/><path d="M10 40c0-8 6-12 14-12s14 4 14 12"/></svg></div></div>
@@ -319,25 +319,25 @@
 </div></section>
 
 <!-- JOURNEY -->
-<section id="journey" class="panel"><div class="container">
+<section id="journey" class="white"><div class="container">
   <div class="sh reveal"><div><div class="label" style="margin-bottom:10px">How SIH works</div><h2>Eight steps to the national stage.</h2></div><p>You always know exactly what's next — no confusion, no chaos.</p></div>
   <div class="tl reveal r1" id="timeline"></div>
 </div></section>
 
 <!-- DOMAINS -->
-<section id="domains" class="white"><div class="container">
+<section id="domains"><div class="container">
   <div class="sh reveal"><div><div class="label" style="margin-bottom:10px">Innovation domains</div><h2>Choose your arena.</h2></div><p>Ten domains spanning real government and industry challenges.</p></div>
   <div class="tiles reveal r1" id="tiles"></div>
 </div></section>
 
 <!-- MENTORS -->
-<section id="mentors"><div class="container">
+<section id="mentors" class="white"><div class="container">
   <div class="sh reveal"><div><div class="label" style="margin-bottom:10px">Mentorship</div><h2>Guidance that has been there.</h2></div><p>Faculty, industry, and alumni mentors — matched to your domain.</p></div>
   <div class="mentors reveal r1" id="mentorGrid"></div>
 </div></section>
 
 <!-- SUCCESS / IMPACT -->
-<section><div class="container">
+<section class="panel"><div class="container">
   <div class="impact reveal">
     <div class="lab">The 2026 commitment</div>
     <h2>Not here to participate. Here to win — measurably.</h2>

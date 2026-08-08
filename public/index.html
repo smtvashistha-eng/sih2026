@@ -17,7 +17,7 @@
     --r:14px; --r-sm:12px; --r-lg:20px;
     --sans:"Satoshi",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --ease:cubic-bezier(.22,.61,.36,1);
-    --maxw:1160px; --panel:#FAFAFC; --divider:#EAECF0; --sec:clamp(44px,6vw,64px);
+    --maxw:1160px; --panel:#FAFAFC; --divider:#EAECF0; --sec:clamp(24px,2.8vw,32px);
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
@@ -71,7 +71,7 @@
   .sh p{color:var(--muted);font-size:15px;max-width:40ch}
 
   /* HERO */
-  .hero{min-height:82vh;display:flex;align-items:center;padding-top:clamp(24px,3.5vw,44px);padding-bottom:var(--s16)}
+  .hero{min-height:80vh;display:flex;align-items:center;padding-top:clamp(20px,3vw,40px);padding-bottom:var(--s12)}
   .hero>.container{width:100%}
   .hero .grid{display:grid;grid-template-columns:1.02fr .98fr;gap:clamp(28px,5vw,52px);align-items:center}
   @media(max-width:940px){.hero{min-height:auto}.hero .grid{grid-template-columns:1fr;gap:36px}}
@@ -137,7 +137,8 @@
   /* stats bar floats up to overlap the hero, connecting hero → platform */
   .stats-band{padding:0;margin-top:-40px;position:relative;z-index:3}
   .stats-band .metrics{box-shadow:var(--shadow)}
-  @media(max-width:940px){.stats-band{margin-top:var(--s6)}}
+  @media(max-width:940px){.stats-band{margin-top:var(--s4)}}
+  @media(max-width:940px){.hero{padding-bottom:var(--s8)}}
 
   /* WHY — editorial rows */
   .why{display:flex;flex-direction:column;gap:var(--s8)}

@@ -83,16 +83,47 @@
   .hero .meta b{color:var(--text);font-weight:600}
   .hero .meta .d{color:var(--success)}
 
-  /* platform preview window */
-  .window{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden}
-  .win-bar{display:flex;align-items:center;gap:7px;padding:12px 14px;border-bottom:1px solid var(--border)}
-  .win-bar .dot{width:9px;height:9px;border-radius:50%;background:#E3E6EC}
-  .win-bar .u{margin-left:10px;font-size:12px;color:var(--faint);font-weight:500}
-  .win-body{position:relative;height:290px}
-  .screen{position:absolute;inset:0;padding:20px;opacity:0;transform:translateX(14px);transition:opacity .5s var(--ease),transform .5s var(--ease);pointer-events:none}
-  .screen.active{opacity:1;transform:none;pointer-events:auto}
-  .scr-tag{font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
-  .scr-h{font-size:17px;font-weight:700;margin:6px 0 14px;letter-spacing:-.01em}
+  /* hero story cards — five chapters, one system, fixed dimensions (no layout shift) */
+  .story-view{position:relative;height:436px;background:var(--card);border:1px solid var(--border);border-radius:24px;box-shadow:0 18px 60px rgba(15,23,42,.08);overflow:hidden}
+  @media(max-width:560px){.story-view{height:420px}}
+  .story{position:absolute;inset:0;padding:24px;display:flex;flex-direction:column;overflow:hidden;opacity:0;transform:translateY(10px) scale(.98);transition:opacity .5s ease-out,transform .5s ease-out;pointer-events:none}
+  .s-chips>*{flex-shrink:0}
+  .story.active{opacity:1;transform:none;pointer-events:auto}
+  .s-cat{height:15px;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  .s-cat .d{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  .s-head{height:52px;margin-top:10px;font-size:22px;font-weight:700;letter-spacing:-.025em;line-height:1.16;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .s-desc{height:38px;margin-top:7px;font-size:12.5px;line-height:1.5;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .s-div{height:1px;background:var(--border);margin:13px 0}
+  .s-visual{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center}
+  .s-chips{height:28px;overflow:hidden;display:flex;align-items:center;gap:6px;margin-top:12px}
+  .s-foot{height:18px;margin-top:12px;display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--text)}
+  .s-foot .fd{width:6px;height:6px;border-radius:50%;background:var(--success)}
+  .s-foot .ar{margin-left:auto;color:var(--faint)}
+  /* scoped card atoms — one consistent look */
+  .schip{font-size:11px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--bg);border:1px solid var(--border);color:var(--muted);display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+  .schip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .schip.ok{color:var(--success);border-color:color-mix(in srgb,var(--success) 30%,var(--border))}
+  .sav{width:32px;height:32px;border-radius:50%;background:var(--bg);border:2px solid var(--card);display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--muted)}
+  .sav.blue{background:var(--accent);color:#fff}
+  .savrow{display:flex}.savrow .sav{margin-left:-9px}.savrow .sav:first-child{margin-left:0}
+  .skill{font-size:11px;font-weight:600;padding:4px 9px;border-radius:8px;background:var(--accent-soft);color:var(--accent-d)}
+  .mrow{display:flex;align-items:center;gap:10px;padding:5px 0}
+  .mrow .mn{font-size:12.5px;font-weight:700;line-height:1.2;display:flex;align-items:center;gap:5px}
+  .mrow .mr{font-size:10.5px;color:var(--muted);margin-top:1px}
+  .mrow .mt{margin-left:auto;color:var(--warning);font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:3px}
+  .vbadge{color:var(--accent);display:inline-flex}
+  .stepper{display:flex;align-items:flex-start}
+  .stepper .st{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;position:relative}
+  .stepper .st::before{content:"";position:absolute;top:7px;left:-50%;width:100%;height:2px;background:var(--border)}
+  .stepper .st:first-child::before{display:none}
+  .stepper .st.done::before,.stepper .st.cur::before{background:var(--accent)}
+  .stepper .st .n{width:16px;height:16px;border-radius:50%;background:var(--card);border:2px solid var(--border);z-index:1}
+  .stepper .st.done .n{background:var(--accent);border-color:var(--accent)}
+  .stepper .st.cur .n{border-color:var(--accent);box-shadow:0 0 0 4px rgba(37,99,235,.16)}
+  .stepper .st .lb{font-size:9px;color:var(--muted);text-align:center;line-height:1.15;letter-spacing:-.01em}
+  .stepper .st.cur .lb{color:var(--accent);font-weight:700}
+  .sbar{height:7px;border-radius:99px;background:var(--bg);border:1px solid var(--border);overflow:hidden}
+  .sbar>i{display:block;height:100%;width:0;background:var(--accent);border-radius:99px;transition:width 1.1s var(--ease)}
   .field{border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--muted);margin-bottom:8px;background:var(--bg)}
   .chips{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 12px}
   .chip{font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent-d)}
@@ -251,13 +282,8 @@
     <div class="meta reveal in r4"><span><span class="d">●</span> Portal live</span><span><b>6</b> members / team</span><span><b>8-week</b> sprint</span><span><b>National</b> finals</span></div>
   </div>
   <div class="reveal in r2">
-    <div class="window" aria-hidden="true">
-      <div class="win-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="u" id="winUrl">sih2026 · registration</span></div>
-      <div class="win-body" id="winBody">
-        <!-- screens injected by JS -->
-      </div>
-      <div class="dots" id="winDots"></div>
-    </div>
+    <div class="story-view" id="winBody" aria-hidden="true"></div>
+    <div class="dots" id="winDots" style="justify-content:flex-start;padding:14px 2px 0"></div>
   </div>
 </div></header>
 
@@ -366,23 +392,56 @@
 <script>
 var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* ---------- hero platform preview (rotating software screens) ---------- */
-var SCREENS=[
-  {u:'registration',t:'Student Registration',html:'<div class="scr-tag">Apply</div><div class="scr-h">Create your application</div><div class="field">Full name — Aarav Sharma</div><div class="field">Email — aarav@college.edu</div><div class="chips"><span class="chip">React</span><span class="chip">Node</span><span class="chip">UI design</span></div><span class="softbtn">Submit application</span>'},
-  {u:'interview',t:'Interview Schedule',html:'<div class="scr-tag">Scheduled</div><div class="scr-h">Interview · 12 Aug, 5:00 PM</div><div class="cal"><div class="c">M</div><div class="c">T</div><div class="c">W</div><div class="c">T</div><div class="c">F</div><div class="c">S</div><div class="c">S</div><div class="c">9</div><div class="c">10</div><div class="c">11</div><div class="c on">12</div><div class="c">13</div><div class="c">14</div><div class="c">15</div></div><div class="row" style="margin-top:12px;color:var(--muted);font-size:13px">📍 Innovation Lab · Block C</div>'},
-  {u:'team-builder',t:'Team Builder',html:'<div class="scr-tag">Team · SIH-07</div><div class="scr-h">Six members, one workspace</div><div class="avset">'+'<span class="av blue">AS</span><span class="av">IV</span><span class="av">RG</span><span class="av">MN</span><span class="av">KP</span><span class="av">SR</span>'+'</div><div class="row" style="margin-top:14px;gap:8px"><span class="chip">1 female ✓</span><span class="chip">Roles set ✓</span></div>'},
-  {u:'project',t:'Project Progress',html:'<div class="scr-tag">Week 4 of 8</div><div class="scr-h">RakshaNet — 62% complete</div><div class="bar"><i style="width:62%"></i></div><div class="row" style="justify-content:space-between;font-size:13px;color:var(--muted)"><span>✓ Roster</span><span>✓ PS locked</span><span>◐ Demo</span></div>'},
-  {u:'mentor',t:'Mentor Assignment',html:'<div class="scr-tag">Mentorship</div><div class="scr-h">Mentor assigned</div><div class="row" style="gap:12px"><span class="av" style="width:40px;height:40px;font-size:14px">RK</span><div><div style="font-weight:700;font-size:14px">Faculty Mentor</div><div style="font-size:12px;color:var(--muted)">Disaster Management domain</div></div></div><span class="badge ok" style="margin-top:14px">● Reviewing your Week-4 submission</span>'},
-  {u:'dashboard',t:'Live Dashboard',html:'<div class="scr-tag">Overview</div><div class="scr-h">Team dashboard</div><div class="miniStat"><div class="b"><div class="n">62%</div><div class="l">Progress</div></div><div class="b"><div class="n">9.6%</div><div class="l">Odds</div></div><div class="b"><div class="n">3</div><div class="l">Approved</div></div></div>'},
-  {u:'selection',t:'Selection Status',html:'<div class="scr-tag">Result</div><div class="scr-h">You made it through</div><span class="badge ok" style="font-size:14px;padding:10px 16px">✓ Selected — Team SIH-07</span><div style="margin-top:14px;font-size:13px;color:var(--muted)">Credentials sent · agreement signed</div>'}
+/* ---------- hero story cards — five chapters of one premium system ---------- */
+var CHK='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+var STAR='<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 3l2.7 5.8 6.3.8-4.6 4.3 1.2 6.2L12 17.9 6.4 20.9l1.2-6.2L3 10.4l6.3-.8z"/></svg>';
+function stepper(items,curIdx){return '<div class="stepper">'+items.map(function(it,i){var cls=i<curIdx?'done':(i===curIdx?'cur':'');return '<div class="st '+cls+'"><span class="n"></span><span class="lb">'+it+'</span></div>';}).join('')+'</div>';}
+
+var STORIES=[
+  {cat:'Community', head:'Build with the best.', desc:'Collaborate with ambitious developers, designers, AI engineers, researchers and presenters from multiple colleges.',
+   visual:'<div class="savrow" style="margin-bottom:14px"><span class="sav blue">AS</span><span class="sav">IV</span><span class="sav">RG</span><span class="sav">MN</span><span class="sav">KP</span><span class="sav">SR</span></div>'+
+     '<div style="display:flex;gap:6px;flex-wrap:wrap"><span class="skill">Frontend</span><span class="skill">Backend</span><span class="skill">AI</span><span class="skill">Design</span><span class="skill">Research</span><span class="skill">Presentation</span></div>',
+   chips:[{t:'Cross college'},{t:'Verified members',ok:1},{t:'Growing community'}], foot:"India's next builders"},
+
+  {cat:'Innovation', head:'Solve problems that matter.', desc:"Build meaningful solutions around real-world domains that shape India's future.",
+   visual:'<div style="display:flex;gap:6px;flex-wrap:wrap;align-content:center">'+
+     '<span class="schip on">Artificial Intelligence</span><span class="schip">Healthcare</span><span class="schip">Cyber Security</span><span class="schip">Smart Cities</span><span class="schip">Education</span><span class="schip">Agriculture</span><span class="schip">IoT</span><span class="schip">FinTech</span><span class="schip">Sustainability</span></div>',
+   chips:[{t:'Government inspired'},{t:'Industry focused'},{t:'Real impact'}], foot:'Innovation starts here'},
+
+  {cat:'Mentorship', head:'Guided by experts.', desc:'Learn directly from experienced mentors through structured reviews and continuous guidance.',
+   visual:[['RK','Faculty Mentor','Computer Science','4.9'],['SP','Industry Mentor','Product & Engineering','4.8'],['AV','Alumni Mentor','SIH Finalist · 2024','5.0']].map(function(m){
+     return '<div class="mrow"><span class="sav">'+m[0]+'</span><div style="min-width:0"><div class="mn">'+m[1]+' <span class="vbadge">'+CHK+'</span></div><div class="mr">'+m[2]+'</div></div><span class="mt">'+STAR+' '+m[3]+'</span></div>';}).join(''),
+   chips:[{t:'Weekly reviews'},{t:'Live feedback'},{t:'Industry guidance'}], foot:'Built with experience'},
+
+  {cat:'Execution', head:'Built through sprints.', desc:'Every successful project grows through planning, execution, review and continuous improvement.',
+   visual:stepper(['Research','Plan','Prototype','Testing','Present','Submit'],3),
+   chipsHtml:'<span style="font-size:11.5px;font-weight:600;color:var(--muted)">Sprint progress</span><div class="sbar" style="flex:1;min-width:50px"><i data-w="82"></i></div><span style="font-size:12px;font-weight:700;color:var(--accent)">82%</span>',
+   foot:'Consistency wins'},
+
+  {cat:'Destination', head:'Ready for the national stage.', desc:"Transform your ideas into impactful solutions and compete among the country's best innovators.",
+   visual:stepper(['Register','Interview','Team','Develop','Review','Submit','Finals'],4),
+   chips:[{t:'National recognition'},{t:'Top teams'},{t:'Future ready'}], foot:'Your journey begins here'}
 ];
+
+function renderStory(s){
+  var chips = s.chipsHtml || (s.chips||[]).map(function(c){return '<span class="schip'+(c.ok?' ok':'')+'">'+(c.ok?CHK:'')+c.t+'</span>';}).join('');
+  return '<div class="s-cat"><span class="d"></span>'+s.cat+'</div>'+
+    '<div class="s-head">'+s.head+'</div>'+
+    '<div class="s-desc">'+s.desc+'</div>'+
+    '<div class="s-div"></div>'+
+    '<div class="s-visual">'+s.visual+'</div>'+
+    '<div class="s-chips">'+chips+'</div>'+
+    '<div class="s-foot"><span class="fd"></span>'+s.foot+'<span class="ar">→</span></div>';
+}
 (function(){
-  var body=document.getElementById('winBody'),dotsEl=document.getElementById('winDots'),urlEl=document.getElementById('winUrl');
-  body.innerHTML=SCREENS.map(function(s,i){return '<div class="screen'+(i===0?' active':'')+'">'+s.html+'</div>';}).join('');
-  dotsEl.innerHTML=SCREENS.map(function(s,i){return '<i class="'+(i===0?'on':'')+'"></i>';}).join('');
-  var screens=body.querySelectorAll('.screen'),dots=dotsEl.querySelectorAll('i'),cur=0;
-  function go(n){screens[cur].classList.remove('active');dots[cur].classList.remove('on');cur=n;screens[cur].classList.add('active');dots[cur].classList.add('on');urlEl.textContent='sih2026 · '+SCREENS[cur].u;}
-  if(!reduce)setInterval(function(){go((cur+1)%SCREENS.length);},3200);
+  var body=document.getElementById('winBody'),dotsEl=document.getElementById('winDots');
+  body.innerHTML=STORIES.map(function(s,i){return '<div class="story'+(i===0?' active':'')+'">'+renderStory(s)+'</div>';}).join('');
+  dotsEl.innerHTML=STORIES.map(function(s,i){return '<i class="'+(i===0?'on':'')+'"></i>';}).join('');
+  var cards=body.querySelectorAll('.story'),dots=dotsEl.querySelectorAll('i'),cur=0;
+  function fillBars(el){el.querySelectorAll('.sbar>i[data-w]').forEach(function(b){b.style.width=b.getAttribute('data-w')+'%';});}
+  fillBars(cards[0]);
+  function go(n){cards[cur].classList.remove('active');dots[cur].classList.remove('on');cur=n;cards[cur].classList.add('active');dots[cur].classList.add('on');fillBars(cards[cur]);}
+  if(!reduce)setInterval(function(){go((cur+1)%STORIES.length);},4200);
 })();
 
 /* ---------- live platform preview rail ---------- */

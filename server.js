@@ -249,7 +249,9 @@ app.post('/api/my/comment', requireActiveTeam, (req, res) => {
   const text = clean((req.body || {}).text, 800);
   if (!text) return res.status(400).json({ error: 'Type a message.' });
   const c = { id: nextId(), teamId: req.team.id, authorId: req.me.id, authorName: req.me.name, role: req.me.isCaptain ? 'captain' : 'member', text, at: Date.now() };
-  db.comments.push(c); save(); res.json({ ok: true, comment: c });
+  db.comments.push(c); save();
+  try { emitToTeam(c.teamId, 'message', c); } catch (e) {}
+  res.json({ ok: true, comment: c });
 });
 
 /* ---------------- core team ---------------- */
@@ -299,7 +301,9 @@ app.post('/api/admin/user/:id/comment', requireCore, (req, res) => {
   const text = clean((req.body || {}).text, 800);
   if (!text) return res.status(400).json({ error: 'Type a message.' });
   const c = { id: nextId(), teamId: u.id, authorId: req.me.id, authorName: req.me.name, role: 'core', text, at: Date.now() };
-  db.comments.push(c); save(); res.json({ ok: true, comment: c });
+  db.comments.push(c); save();
+  try { emitToTeam(c.teamId, 'message', c); } catch (e) {}
+  res.json({ ok: true, comment: c });
 });
 
 app.put('/api/admin/user/:id/interview', requireCore, (req, res) => {
@@ -366,6 +370,79 @@ app.delete('/api/admin/user/:id', requireCore, (req, res) => {
   db.comments = db.comments.filter(c => c.teamId !== idn);
   db.users = db.users.filter(x => x.id !== idn && x.teamOf !== idn); // remove captain + joined members
   save(); res.json({ ok: true });
+});
+
+/* ==================== SIH Connect (additive · server-side auth · SSE realtime) ====================
+   Reuses existing session auth + team membership (resolveTeam) + the existing db.comments store.
+   Team messages written here also appear in the workspace/admin chat and vice-versa (one source). */
+const sseClients = new Map(); // userId(string) -> Set<res>
+function connTeamMemberIds(teamId) {
+  const ids = new Set();
+  db.users.forEach(u => { if (u.id === teamId || u.teamOf === teamId) ids.add(u.id); });
+  db.users.forEach(u => { if (u.role === 'admin' || u.role === 'lead') ids.add(u.id); }); // core team follows all
+  return ids;
+}
+function emitToTeam(teamId, event, payload) {
+  const ids = connTeamMemberIds(teamId);
+  for (const [uid, set] of sseClients) {
+    if (!ids.has(Number(uid))) continue;
+    for (const res of set) { try { res.write('event: ' + event + '\ndata: ' + JSON.stringify(payload) + '\n\n'); } catch (e) {} }
+  }
+}
+function connCanAccess(u, teamId) {
+  if (!u) return false;
+  if (u.role === 'admin' || u.role === 'lead') return true;
+  const t = resolveTeam(u); return !!(t && t.id === teamId);
+}
+function connConversations(u) {
+  let teams;
+  if (u.role === 'admin' || u.role === 'lead') teams = db.users.filter(x => x.role === 'member' && x.status === 'Selected');
+  else { const t = resolveTeam(u); teams = t ? [t] : []; }
+  const readMap = u.connectReadAt || {};
+  return teams.map(t => {
+    const msgs = db.comments.filter(c => c.teamId === t.id);
+    const last = msgs.length ? msgs[msgs.length - 1] : null;
+    const lastRead = readMap[t.id] || 0;
+    const unread = msgs.filter(c => c.at > lastRead && c.authorId !== u.id).length;
+    return { id: t.id, type: 'team', code: t.teamCode || '', name: t.teamName || t.name, unread, lastText: last ? last.text : '', lastAt: last ? last.at : (t.createdAt || 0), members: (db.users.filter(x => x.teamOf === t.id).length + 1) };
+  }).sort((a, b) => (b.lastAt || 0) - (a.lastAt || 0));
+}
+app.get('/api/connect/summary', requireAuth, (req, res) => {
+  res.json({ me: { id: req.me.id, name: req.me.name, role: req.me.role, isCaptain: req.me.status === 'Selected' }, conversations: connConversations(req.me) });
+});
+app.get('/api/connect/messages', requireAuth, (req, res) => {
+  const teamId = parseInt(req.query.teamId, 10);
+  if (!connCanAccess(req.me, teamId)) return res.status(403).json({ error: 'No access to this conversation.' });
+  res.json({ messages: db.comments.filter(c => c.teamId === teamId).slice(-50) });
+});
+app.post('/api/connect/message', requireAuth, (req, res) => {
+  const b = req.body || {}; const teamId = parseInt(b.teamId, 10);
+  if (!connCanAccess(req.me, teamId)) return res.status(403).json({ error: 'No access to this conversation.' });
+  const text = clean(b.text, 2000);
+  if (!text) return res.status(400).json({ error: 'Type a message.' });
+  const isCore = req.me.role === 'admin' || req.me.role === 'lead';
+  const cap = resolveTeam(req.me); const isCap = !!(cap && cap.id === req.me.id);
+  const c = { id: nextId(), teamId, authorId: req.me.id, authorName: req.me.name, role: isCore ? 'core' : (isCap ? 'captain' : 'member'), text, at: Date.now() };
+  db.comments.push(c); save();
+  emitToTeam(teamId, 'message', c);
+  res.json({ ok: true, message: c });
+});
+app.post('/api/connect/read', requireAuth, (req, res) => {
+  const teamId = parseInt((req.body || {}).teamId, 10);
+  if (!connCanAccess(req.me, teamId)) return res.status(403).json({ error: 'No access.' });
+  if (!req.me.connectReadAt) req.me.connectReadAt = {};
+  req.me.connectReadAt[teamId] = Date.now(); save();
+  res.json({ ok: true });
+});
+app.get('/api/connect/stream', requireAuth, (req, res) => {
+  res.set({ 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache, no-transform', 'Connection': 'keep-alive', 'X-Accel-Buffering': 'no' });
+  if (res.flushHeaders) res.flushHeaders();
+  res.write('event: ready\ndata: {}\n\n');
+  const uid = String(req.me.id);
+  if (!sseClients.has(uid)) sseClients.set(uid, new Set());
+  sseClients.get(uid).add(res);
+  const hb = setInterval(() => { try { res.write(': hb\n\n'); } catch (e) {} }, 25000);
+  req.on('close', () => { clearInterval(hb); const set = sseClients.get(uid); if (set) { set.delete(res); if (!set.size) sseClients.delete(uid); } });
 });
 
 const PORT = process.env.PORT || 4000;

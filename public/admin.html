@@ -58,8 +58,41 @@
   table.t tbody tr:hover td{background:#F7F9FB}
 
   /* filter chips: active = navy (overrides inline dark state, visual only) */
-  .fchip{border-radius:999px}
+  .fchip{border-radius:999px;min-height:36px}
   .fchip[aria-pressed="true"]{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important}
+
+  /* ===== information architecture: one aligned grid, compact rhythm ===== */
+  .topbar{position:sticky;top:0;z-index:50}
+  .topbar .in{max-width:1440px;min-height:64px;align-items:center}
+  .wrap{max-width:1440px;padding:0 clamp(20px,3vw,32px)}
+  .wrap.grid{gap:24px!important;padding-top:24px}
+
+  /* Recruitment overview — six metrics become ONE unified bar (not floating cards) */
+  #stats.stats{grid-template-columns:repeat(6,1fr);gap:0;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+  #stats .stat{border-radius:0!important;box-shadow:none!important;border:0;border-right:1px solid var(--line);padding:18px 18px 16px}
+  #stats .stat:last-child{border-right:0}
+  #stats .stat .n{font-size:26px}
+  #stats .stat.hoverable:hover{transform:none;box-shadow:none}
+  @media(max-width:860px){#stats.stats{grid-template-columns:repeat(3,1fr)}#stats .stat:nth-child(3n){border-right:0}#stats .stat:nth-child(-n+3){border-bottom:1px solid var(--line)}}
+  @media(max-width:520px){#stats.stats{grid-template-columns:repeat(2,1fr)}#stats .stat:nth-child(2n){border-right:0}}
+
+  /* Content-aware pipeline — empty Interview column stays compact, no huge blank box */
+  #pipe.pipe{display:flex;gap:16px;align-items:flex-start}
+  #pipe.pipe>.col{margin:0}
+  #pipe.pipe>.col:first-child{flex:1 1 auto;min-width:0}
+  #pipe.pipe>.col:last-child{flex:0 1 340px;min-width:240px}
+  @media(max-width:760px){#pipe.pipe{flex-direction:column}#pipe.pipe>.col{width:100%;flex:1 1 auto}}
+  .col{padding:14px}
+  .app{padding:12px 14px;border-radius:12px}
+
+  /* Teams table + progress polish */
+  .prog{height:6px}
+  table.t td{padding:13px 13px}
+  table.t th{padding:11px 13px}
+
+  /* QR compact */
+  #qrCard .qrframe img{width:176px;height:176px}
+  #qrCard .card,#qrCard{border-radius:18px}
 </style>
 </head>
 <body>

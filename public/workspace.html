@@ -48,9 +48,11 @@
 
   /* ---- shell / grid ---- */
   .ccwrap{max-width:1240px;margin:0 auto;padding:clamp(18px,3vw,28px) clamp(16px,4vw,28px) 60px}
-  .ccgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
-  .col12{grid-column:span 12}.col8{grid-column:span 8}.col6{grid-column:span 6}.col4{grid-column:span 4}
-  @media(max-width:980px){.col8,.col6,.col4{grid-column:span 12}}
+  .ccgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;align-items:start}
+  .col12{grid-column:span 12}.col8{grid-column:span 8}.col7{grid-column:span 7}
+  .col6{grid-column:span 6}.col5{grid-column:span 5}.col4{grid-column:span 4}
+  @media(max-width:1080px){.col8,.col7{grid-column:span 12}.col5,.col4{grid-column:span 6}.col6{grid-column:span 6}}
+  @media(max-width:720px){.col8,.col7,.col6,.col5,.col4{grid-column:span 12}}
 
   /* ---- cards ---- */
   .cc{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:20px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
@@ -123,7 +125,34 @@
   .fld textarea{min-height:70px;resize:vertical}
   .err{color:#DC2626;font-size:12.5px;margin-top:6px;min-height:1em}
 
-  /* tasks */
+  /* stat row */
+  .statrow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  @media(max-width:560px){.statrow{grid-template-columns:repeat(2,1fr)}}
+  .stat{border:1px solid var(--bd);border-radius:13px;padding:12px 14px;background:var(--card)}
+  .stat .v{font-size:24px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
+  .stat .k{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-top:5px}
+  .stat.ov .v{color:#DC2626}.stat.up .v{color:var(--blue)}.stat.dn .v{color:var(--ok)}
+
+  /* compact task list */
+  .tfilter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .tfilter button{font:inherit;font-size:12px;font-weight:700;padding:5px 11px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--sub);cursor:pointer}
+  .tfilter button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+  .tlist{display:flex;flex-direction:column;gap:8px}
+  .trow{border:1px solid var(--bd);border-radius:12px;padding:11px 13px;background:var(--card);cursor:pointer;transition:.15s}
+  .trow:hover{border-color:var(--blue);box-shadow:0 4px 14px rgba(16,24,40,.05)}
+  .trow .top{display:flex;align-items:center;gap:10px}
+  .trow .wk{font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--blue-d);background:var(--blue-soft);border-radius:6px;padding:2px 7px;flex:none}
+  .trow .ti{font-size:14px;font-weight:700;color:var(--ink);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .trow .cw{font-size:16px;color:var(--mut);transition:.2s}
+  .trow.open .cw{transform:rotate(90deg)}
+  .trow .body{margin-top:10px}
+  .trow .dt{font-size:12.5px;color:var(--sub);line-height:1.45}
+  .trow .ask{font-size:11.5px;color:var(--mut);margin-top:5px}
+  .trow .links{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+  .trow .links a{font-size:12px;font-weight:700;color:var(--blue);text-decoration:none}
+  .trow .fb{margin-top:8px;font-size:12.5px;background:var(--saffron-soft);border:1px solid #F3D9AE;color:#8A5A12;border-radius:9px;padding:8px 10px}
+
+  /* tasks (legacy board, kept for compatibility) */
   .tcols{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
   @media(max-width:820px){.tcols{grid-template-columns:1fr}}
   .tcol .hd{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:0 0 10px;display:flex;align-items:center;gap:7px}
@@ -387,25 +416,22 @@ function render(){
   // journey steps
   const jhtml=journey().map((s,i)=>'<div class="step '+(s.done?'done':'')+(s.cur?' cur':'')+'">'+(i>0?'<div class="bar"></div>':'')+'<div class="dot">'+(s.done?'✓':(s.cur?'●':(i+1)))+'</div><div class="lb">'+s.lb+'</div></div>').join('');
 
-  // tasks grouped
-  const groups={todo:[],prog:[],done:[]};
-  MILES.forEach(m=>{const s=subFor(m.id);const st=s?s.status:'todo';
-    const key=st==='approved'?'done':(st==='submitted'?'prog':(st==='changes'?'prog':'todo'));
-    groups[key].push({m,s,st});});
-  function taskCard(x){const {m,s,st}=x;
+  // tasks — compact list (status derived from submissions)
+  function taskGroup(m){const s=subFor(m.id);const st=s?s.status:'todo';return st==='approved'?'done':(st==='submitted'?'prog':(st==='changes'?'chg':'todo'));}
+  function trow(m){const s=subFor(m.id);const st=s?s.status:'todo';const grp=taskGroup(m);
     const pill=st==='approved'?'<span class="pill p-appr">approved</span>':st==='submitted'?'<span class="pill p-sub">under review</span>':st==='changes'?'<span class="pill p-chg">changes</span>':'<span class="pill p-todo">to do</span>';
     let links='';if(s){const L=[['github','Repo'],['deck','Deck'],['demo','Demo'],['live','Live']].filter(k=>s[k[0]]);if(L.length)links='<div class="links">'+L.map(k=>'<a href="'+esc(s[k[0]])+'" target="_blank" rel="noopener">'+k[1]+' ↗</a>').join('')+'</div>';}
     const fb=s&&s.feedback?'<div class="fb"><b>Core team:</b> '+esc(s.feedback)+'</div>':'';
-    return '<div class="task"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="wk">Week '+m.week+'</span>'+pill+'</div>'+
-      '<h4>'+esc(m.title)+'</h4><div class="dt">'+esc(m.detail)+'</div><div class="ask">Expected: '+esc(m.asks)+'</div>'+links+fb+
-      '<div style="margin-top:10px"><button class="b sm" data-open="'+m.id+'">'+(s?'Update':'Submit work')+'</button></div>'+
-      '<form class="cc-hidden" id="f-'+m.id+'" style="margin-top:12px">'+
+    return '<div class="trow" data-grp="'+grp+'"><div class="top" data-open="'+m.id+'"><span class="wk">W'+m.week+'</span><span class="ti">'+esc(m.title)+'</span>'+pill+'<span class="cw">›</span></div>'+
+      '<div class="body cc-hidden" id="b-'+m.id+'"><div class="dt">'+esc(m.detail)+'</div><div class="ask">Expected: '+esc(m.asks)+'</div>'+links+fb+
+      '<form id="f-'+m.id+'" style="margin-top:10px">'+
         '<div class="row2"><div class="fld"><label>GitHub</label><input name="github" value="'+esc(s?s.github:'')+'" placeholder="repo link"/></div><div class="fld"><label>Deck</label><input name="deck" value="'+esc(s?s.deck:'')+'" placeholder="slides link"/></div></div>'+
         '<div class="row2" style="margin-top:10px"><div class="fld"><label>Demo video</label><input name="demo" value="'+esc(s?s.demo:'')+'" placeholder="YouTube/Loom"/></div><div class="fld"><label>Live URL</label><input name="live" value="'+esc(s?s.live:'')+'" placeholder="deployed"/></div></div>'+
         '<div class="fld" style="margin-top:10px"><label>Notes</label><textarea name="notes" placeholder="what you did / need help on">'+esc(s?s.notes:'')+'</textarea></div>'+
-        '<button class="b pri sm" type="submit" style="margin-top:10px">Submit for review</button> <span class="err" style="display:inline"></span></form></div>';
+        '<button class="b pri sm" type="submit" style="margin-top:10px">'+(s?'Update':'Submit for review')+'</button> <span class="err" style="display:inline"></span></form></div></div>';
   }
-  function col(key,label,ico){const arr=groups[key];return '<div class="tcol '+key+'"><div class="hd">'+ico+' '+label+' <span class="cnt">'+arr.length+'</span></div>'+(arr.length?arr.map(taskCard).join(''):'<div class="empty">—</div>')+'</div>';}
+  const tlistHtml=MILES.map(trow).join('');
+  const gc={todo:0,prog:0,done:0,chg:0};MILES.forEach(m=>{gc[taskGroup(m)]++;});
 
   // idea setup block (unchanged IDs)
   const ideaSetup = TEAM.wantsLeader
@@ -434,26 +460,35 @@ function render(){
         '<div class="ovs"><div class="k">Team ID</div><div class="v">'+esc(TEAM.teamCode)+'</div></div>'+
         '<div class="ovs ovprog"><div class="k">Overall progress</div><div class="v">'+c.approved+'/'+c.total+' targets</div><div class="ovbar"><i style="width:'+c.pct+'%"></i></div></div></div></div>'+
 
-    // NEXT MOVE
-    '<div class="cc col8 nm"><div class="ring">'+nm.ico+'</div><div><div class="eb">Your next move</div><h2>'+nm.t+'</h2><p>'+nm.d+'</p></div>'+
+    // STAT ROW (real, from submissions)
+    '<div class="cc col12 tight"><div class="statrow">'+
+      '<div class="stat"><div class="v">'+c.total+'</div><div class="k">Targets</div></div>'+
+      '<div class="stat dn"><div class="v">'+c.approved+'</div><div class="k">Approved</div></div>'+
+      '<div class="stat up"><div class="v">'+c.submitted+'</div><div class="k">In review</div></div>'+
+      '<div class="stat ov"><div class="v">'+c.changes+'</div><div class="k">Needs fix</div></div>'+
+      '<div class="stat"><div class="v">'+upcoming().length+'</div><div class="k">Upcoming</div></div>'+'</div></div>'+
+
+    // NEXT MOVE (7)
+    '<div class="cc col7 nm"><div class="ring">'+nm.ico+'</div><div><div class="eb">Your next move</div><h2>'+nm.t+'</h2><p>'+nm.d+'</p></div>'+
       '<div class="go"><button class="b pri" id="nmBtn">'+nm.label+' →</button></div></div>'+
 
-    // ODDS radar (existing functionality)
-    '<div class="cc col4"><h3 class="t"><span class="ico">📡</span> Selection odds</h3><div class="odds"><div class="big" id="oBig" style="color:'+o.c+'">'+o.big+'</div><div class="lb">chance to reach finale</div><div class="prog"><i id="oBar" style="width:'+o.w+'%"></i></div><div class="pv" id="oV" style="color:'+o.c+'">'+o.t+'</div></div></div>'+
-
-    // JOURNEY
-    '<div class="cc col8"><h3 class="t"><span class="ico">🧭</span> Your SIH journey</h3><div class="jour">'+jhtml+'</div></div>'+
-
-    // READINESS
-    '<div class="cc col4"><h3 class="t"><span class="ico">✅</span> Team readiness</h3><div class="rd-top"><span class="pct">'+rd.pct+'%</span><span class="lb">ready</span></div><div class="miniprog"><i style="width:'+rd.pct+'%"></i></div>'+
+    // READINESS (5)
+    '<div class="cc col5"><h3 class="t"><span class="ico">✅</span> Team readiness <span style="margin-left:auto;font-weight:800;color:var(--ink);text-transform:none;letter-spacing:0">'+rd.pct+'%</span></h3><div class="miniprog"><i style="width:'+rd.pct+'%"></i></div>'+
       '<div class="chk">'+rd.items.map(it=>'<div class="it '+(it.on?'on':'off')+'"><span class="bx">✓</span>'+it.lb+'</div>').join('')+'</div></div>'+
 
-    // TASK CENTER
-    '<div class="cc col8" id="tasks"><h3 class="t"><span class="ico">🗂️</span> Task center — 8-week targets <span style="margin-left:auto;font-weight:700;color:var(--sub);text-transform:none;letter-spacing:0;font-size:12px">'+c.approved+' / '+c.total+' approved</span></h3><div class="tcols">'+
-      col('todo','To do','📋')+col('prog','In progress','⏳')+col('done','Completed','🏁')+'</div></div>'+
+    // JOURNEY (12)
+    '<div class="cc col12"><h3 class="t"><span class="ico">🧭</span> Your SIH journey</h3><div class="jour">'+jhtml+'</div></div>'+
 
-    // TEAM HUB
-    '<div class="cc col4" id="team"><h3 class="t"><span class="ico">👥</span> Team hub</h3><div class="avatars">'+avs+'</div>'+
+    // TASK CENTER (7) — compact list
+    '<div class="cc col7" id="tasks"><h3 class="t"><span class="ico">🗂️</span> Task center <span style="margin-left:auto;font-weight:700;color:var(--sub);text-transform:none;letter-spacing:0;font-size:12px">'+c.approved+' / '+c.total+' approved</span></h3>'+
+      '<div class="tfilter"><button class="on" data-f="all">All</button><button data-f="todo">To do ('+gc.todo+')</button><button data-f="prog">In progress ('+(gc.prog)+')</button><button data-f="chg">Needs fix ('+gc.chg+')</button><button data-f="done">Done ('+gc.done+')</button></div>'+
+      '<div class="tlist" id="tlist">'+tlistHtml+'</div></div>'+
+
+    // SCHEDULE / UPCOMING (5) — becomes full calendar in Phase 3
+    '<div class="cc col5"><h3 class="t"><span class="ico">📅</span> Schedule</h3><div class="feed">'+upHtml+'</div></div>'+
+
+    // TEAM HUB (6)
+    '<div class="cc col6" id="team"><h3 class="t"><span class="ico">👥</span> Team hub</h3><div class="avatars">'+avs+'</div>'+
       '<div class="kv"><span class="k">Team name</span><span class="v">'+esc(TEAM.teamName)+'</span></div>'+
       '<div class="kv"><span class="k">Team ID</span><span class="v">'+esc(TEAM.teamCode)+'</span></div>'+
       '<div class="kv"><span class="k">Captain</span><span class="v">'+esc(capName)+'</span></div>'+
@@ -461,15 +496,15 @@ function render(){
       '<div class="kv"><span class="k">Domain</span><span class="v">'+esc(domain)+'</span></div>'+
       (ME.skills?'<div class="kv"><span class="k">Your skills</span><span class="v" style="max-width:60%">'+esc(ME.skills)+'</span></div>':'')+'</div>'+
 
-    // CHALLENGE
-    '<div class="cc col4"><h3 class="t"><span class="ico">🎯</span> Your challenge</h3>'+
+    // CHALLENGE (6)
+    '<div class="cc col6"><h3 class="t"><span class="ico">🎯</span> Your challenge</h3>'+
       '<div style="font-size:16px;font-weight:800;color:var(--ink);margin-bottom:2px">'+esc(problemName)+'</div>'+
       '<div class="tags"><span class="tag">'+esc(domain)+'</span>'+(TEAM.psId?'<span class="tag">PS '+esc(TEAM.psId)+'</span>':'')+'<span class="tag">'+(TEAM.psId?'Locked in':'Not chosen')+'</span></div>'+
       (idea&&idea.edge?'<p style="font-size:12.5px;color:var(--sub);margin:10px 0 0;line-height:1.5">'+esc(idea.edge)+'</p>':'')+
       '<div style="margin-top:12px"><a class="b sm" href="#setup">Edit in setup →</a></div></div>'+
 
     // MISSION SETUP (existing engine — IDs preserved)
-    '<div class="cc col8" id="setup"><h3 class="t"><span class="ico">⚙️</span> Mission setup <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--mut)">(anyone on the team can edit)</span></h3>'+
+    '<div class="cc col7" id="setup"><h3 class="t"><span class="ico">⚙️</span> Mission setup <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--mut)">(anyone on the team can edit)</span></h3>'+
       '<div class="fgrid"><div class="fld"><label>Team name</label><input id="teamName" value="'+esc(TEAM.teamName||'')+'"/></div>'+ideaSetup+
         '<div class="fld"><label>Problem Statement ID</label><input id="psId" value="'+esc(TEAM.psId||'')+'" placeholder="SIH26XXXX"/></div>'+
         '<div class="fld"><label>Live submissions on that PS</label><input id="psCount" type="number" min="0" value="'+(TEAM.psCount==null?'':TEAM.psCount)+'" placeholder="from portal"/></div>'+
@@ -477,8 +512,8 @@ function render(){
         '<div class="fld"><label>Female members (≥1)</label><input id="fcount" type="number" min="0" max="6" value="'+(TEAM.femaleCount||0)+'"/></div></div>'+
       '<button class="b pri" id="saveTeam" style="margin-top:14px">Save setup</button><div class="err" id="tErr"></div></div>'+
 
-    // CHAT
-    '<div class="cc col4" id="chat"><h3 class="t"><span class="ico">💬</span> Team chat'+(unread?' <span style="background:var(--blue);color:#fff;border-radius:99px;padding:1px 7px;font-size:10px;margin-left:2px">'+unread+'</span>':'')+' <a class="lnk" href="/connect.html">Open →</a></h3>'+
+    // CHAT (5)
+    '<div class="cc col5" id="chat"><h3 class="t"><span class="ico">💬</span> Team chat'+(unread?' <span style="background:var(--blue);color:#fff;border-radius:99px;padding:1px 7px;font-size:10px;margin-left:2px">'+unread+'</span>':'')+' <a class="lnk" href="/connect.html">Open →</a></h3>'+
       '<div class="chatbox"><div class="msgs" id="msgs"></div><form class="chatform" id="chatForm"><input id="chatInput" placeholder="Message your team…" autocomplete="off"/><button class="b pri" type="submit">Send</button></form></div></div>'+
 
     // ANNOUNCEMENTS
@@ -487,11 +522,8 @@ function render(){
     // ACTIVITY
     '<div class="cc col6"><h3 class="t"><span class="ico">⚡</span> Recent activity</h3><div class="feed">'+actHtml+'</div></div>'+
 
-    // UPCOMING
-    '<div class="cc col6"><h3 class="t"><span class="ico">📅</span> Upcoming targets</h3><div class="feed">'+upHtml+'</div></div>'+
-
-    // QUICK ACTIONS
-    '<div class="cc col6"><h3 class="t"><span class="ico">⚡</span> Quick actions</h3><div class="qa">'+
+    // QUICK ACTIONS (12)
+    '<div class="cc col12"><h3 class="t"><span class="ico">⚡</span> Quick actions</h3><div class="qa" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">'+
       '<a href="/connect.html"><span class="qi">💬</span><span class="ql">Open chat</span></a>'+
       '<a href="#team"><span class="qi">👥</span><span class="ql">View team</span></a>'+
       '<a href="#tasks"><span class="qi">🗂️</span><span class="ql">View tasks</span></a>'+
@@ -528,7 +560,10 @@ function render(){
     if(!TEAM.wantsLeader){body.ideaId=document.getElementById('idea').value;body.backupIdeaId=document.getElementById('backup').value;}
     try{const d=await api('/api/my/team',{method:'PUT',body:JSON.stringify(body)});TEAM=d.team;toast('Saved ✓');render();}catch(ex){err.textContent=ex.message;}
   });
-  document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>document.getElementById('f-'+b.dataset.open).classList.toggle('cc-hidden')));
+  document.querySelectorAll('.trow .top[data-open]').forEach(t=>t.addEventListener('click',()=>{const id=t.dataset.open;document.getElementById('b-'+id).classList.toggle('cc-hidden');t.closest('.trow').classList.toggle('open');}));
+  document.querySelectorAll('.tfilter button').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tfilter button').forEach(x=>x.classList.remove('on'));btn.classList.add('on');
+    const f=btn.dataset.f;document.querySelectorAll('#tlist .trow').forEach(r=>{r.style.display=(f==='all'||r.dataset.grp===f)?'':'none';});}));
   MILES.forEach(m=>{const f=document.getElementById('f-'+m.id);if(!f)return;f.addEventListener('submit',async e=>{e.preventDefault();const er=f.querySelector('.err');er.textContent='';const fd=new FormData(f);try{const d=await api('/api/my/submission',{method:'POST',body:JSON.stringify({milestoneId:m.id,github:fd.get('github'),deck:fd.get('deck'),demo:fd.get('demo'),live:fd.get('live'),notes:fd.get('notes')})});SUBS=SUBS.filter(s=>s.milestoneId!==m.id);SUBS.push(d.submission);render();toast('Submitted ✓');}catch(ex){er.textContent=ex.message;}});});
   document.querySelectorAll('[data-ack]').forEach(b=>b.addEventListener('click',async()=>{await api('/api/my/directive/'+b.dataset.ack+'/ack',{method:'POST'});const dd=TEAM.directives.find(x=>x.id==b.dataset.ack);if(dd)dd.done=true;render();}));
   document.getElementById('chatForm').addEventListener('submit',async e=>{e.preventDefault();const inp=document.getElementById('chatInput');const t=inp.value.trim();if(!t)return;inp.value='';try{await api('/api/my/comment',{method:'POST',body:JSON.stringify({text:t})});await loadChat();}catch(ex){toast(ex.message);}});

@@ -1,3 +1,4 @@
+@import url("https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap");
 :root{
   --bg:#eaecf1; --surface:#ffffff; --surface-2:#f4f5f8;
   --ink:#141821; --muted:#5b6472; --faint:#8a93a3;
@@ -178,3 +179,25 @@ table.t tr.sel td{background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
 
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:10px;font-size:14px;font-weight:600;box-shadow:var(--shadow);z-index:80;animation:pop .3s ease both}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ===== SIH 2026 UNIFIED DESIGN TOKENS (light) — shared across admin / workspace / status ===== */
+:root, :root[data-theme="light"], :root[data-theme="dark"]{
+  --bg:#F7F7F5; --surface:#FFFFFF; --surface-2:#EFEFEC;
+  --ink:#101828; --muted:#667085; --faint:#98A2B3;
+  --line:#E4E7EC; --line-strong:#DCE0E7;
+  --accent:#2563EB; --accent-ink:#2563EB22;
+  --target:#16A34A; --good:#16A34A; --warn:#D97706; --gold:#D97706; --crowd:#DC2626;
+  --shadow:0 8px 30px rgba(16,24,40,.06);
+  --sans:"Satoshi",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){ :root{
+  --bg:#F7F7F5; --surface:#FFFFFF; --surface-2:#EFEFEC;
+  --ink:#101828; --muted:#667085; --faint:#98A2B3;
+  --line:#E4E7EC; --line-strong:#DCE0E7;
+  --accent:#2563EB; --accent-ink:#2563EB22;
+  --target:#16A34A; --good:#16A34A; --warn:#D97706; --gold:#D97706; --crowd:#DC2626;
+  --shadow:0 8px 30px rgba(16,24,40,.06);
+}}
+/* card/button radius polish to match homepage */
+.card{border-radius:16px}
+.btn{border-radius:12px}

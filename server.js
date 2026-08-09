@@ -254,6 +254,144 @@ app.post('/api/my/comment', requireActiveTeam, (req, res) => {
   res.json({ ok: true, comment: c });
 });
 
+/* ---------------- tasks (Phase 2) ----------------
+   A task belongs to a team (teamId = captain's user id). Roles:
+   - core (admin/lead): full control over any team's tasks
+   - leader (captain, u.id === team.id): create/edit/cancel/verify/reassign own team's tasks
+   - member (assignee): accept / reject(+reason) / progress / complete their OWN assigned task
+   Members can only see tasks assigned to them; leaders/core see all team tasks. */
+const TASK_STATES = ['PENDING_ACCEPTANCE', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED', 'VERIFIED', 'REJECTED', 'CANCELLED'];
+const TASK_PRIOS = ['low', 'medium', 'high'];
+function teamMemberIds(capId) { const ids = [capId]; db.users.filter(u => u.teamOf === capId).forEach(u => ids.push(u.id)); return ids; }
+function nameOf(id) { const u = db.users.find(x => x.id === id); return u ? u.name : ''; }
+function isLeaderOf(u, teamId) { const cap = resolveTeam(u); return !!(cap && cap.id === teamId && cap.id === u.id); }
+function canManageTask(u, t) { return isCore(u) || isLeaderOf(u, t.teamId); }
+function logActivity(teamId, text, meta) { db.activityLog.push({ id: nextId(), teamId, text, meta: meta || {}, at: Date.now() }); if (db.activityLog.length > 500) db.activityLog.splice(0, db.activityLog.length - 500); }
+function findTask(req, res) { const t = db.tasks.find(x => x.id === parseInt(req.params.id, 10)); if (!t) { res.status(404).json({ error: 'Task not found.' }); return null; } return t; }
+
+// List the caller's team tasks (members: only theirs; leader/core: all for the team).
+app.get('/api/my/tasks', requireActiveTeam, (req, res) => {
+  const teamId = req.team.id;
+  const isLeader = req.me.id === teamId;
+  let tasks = db.tasks.filter(t => t.teamId === teamId);
+  if (!isLeader) tasks = tasks.filter(t => t.assignedTo === req.me.id);
+  tasks = tasks.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  res.json({ tasks, isLeader, members: teamMemberIds(teamId).map(id => ({ id, name: nameOf(id), isLeader: id === teamId })) });
+});
+
+// Create a task. Leader (own team) or core (any team via body.teamId).
+app.post('/api/tasks', requireAuth, (req, res) => {
+  const b = req.body || {};
+  const core = isCore(req.me);
+  const cap = resolveTeam(req.me);
+  const leader = !!(cap && cap.id === req.me.id);
+  if (!core && !leader) return res.status(403).json({ error: 'Only the team leader or core team can create tasks.' });
+  const teamId = core ? parseInt(b.teamId, 10) : cap.id;
+  const team = db.users.find(u => u.id === teamId && u.status === 'Selected');
+  if (!team) return res.status(404).json({ error: 'Team not found.' });
+  const title = clean(b.title, 160);
+  if (!title) return res.status(400).json({ error: 'Task title is required.' });
+  const assignedTo = b.assignedTo === '' || b.assignedTo == null ? null : parseInt(b.assignedTo, 10);
+  if (!assignedTo || !teamMemberIds(teamId).includes(assignedTo)) return res.status(400).json({ error: 'Pick an assignee who is on this team.' });
+  const priority = TASK_PRIOS.includes(b.priority) ? b.priority : 'medium';
+  const t = {
+    id: nextId(), teamId, title, description: clean(b.description, 2000),
+    createdBy: req.me.id, createdByName: req.me.name, createdByRole: core ? 'core' : 'leader',
+    assignedTo, assignedToName: nameOf(assignedTo), priority, deadline: clean(b.deadline, 30),
+    status: 'PENDING_ACCEPTANCE', rejectionReason: '', progress: 0,
+    createdAt: Date.now(), updatedAt: Date.now(), completedAt: null, verifiedAt: null
+  };
+  db.tasks.push(t); logActivity(teamId, (core ? 'Core team' : req.me.name) + ' assigned "' + title + '" to ' + t.assignedToName, { type: 'task', taskId: t.id }); save();
+  try { emitToTeam(teamId, 'task', { action: 'created', task: t }); } catch (e) {}
+  res.json({ ok: true, task: t });
+});
+
+// Assignee accepts.
+app.post('/api/tasks/:id/accept', requireAuth, (req, res) => {
+  const t = findTask(req, res); if (!t) return;
+  if (t.assignedTo !== req.me.id) return res.status(403).json({ error: 'Only the assignee can accept this task.' });
+  if (t.status !== 'PENDING_ACCEPTANCE') return res.status(400).json({ error: 'This task is not awaiting acceptance.' });
+  t.status = 'ACCEPTED'; t.updatedAt = Date.now();
+  logActivity(t.teamId, req.me.name + ' accepted "' + t.title + '"', { type: 'task', taskId: t.id }); save();
+  try { emitToTeam(t.teamId, 'task', { action: 'accepted', task: t }); } catch (e) {}
+  res.json({ ok: true, task: t });
+});
+
+// Assignee rejects with a required reason.
+app.post('/api/tasks/:id/reject', requireAuth, (req, res) => {
+  const t = findTask(req, res); if (!t) return;
+  if (t.assignedTo !== req.me.id) return res.status(403).json({ error: 'Only the assignee can reject this task.' });
+  if (t.status !== 'PENDING_ACCEPTANCE') return res.status(400).json({ error: 'This task is not awaiting acceptance.' });
+  const reason = clean((req.body || {}).reason, 500);
+  if (!reason) return res.status(400).json({ error: 'A rejection reason is required.' });
+  t.status = 'REJECTED'; t.rejectionReason = reason; t.updatedAt = Date.now();
+  logActivity(t.teamId, req.me.name + ' rejected "' + t.title + '": ' + reason, { type: 'task', taskId: t.id }); save();
+  try { emitToTeam(t.teamId, 'task', { action: 'rejected', task: t }); } catch (e) {}
+  res.json({ ok: true, task: t });
+});
+
+// Assignee advances progress (ACCEPTED -> IN_PROGRESS -> COMPLETED).
+app.post('/api/tasks/:id/status', requireAuth, (req, res) => {
+  const t = findTask(req, res); if (!t) return;
+  const s = (req.body || {}).status;
+  if (!TASK_STATES.includes(s)) return res.status(400).json({ error: 'Bad status.' });
+  const assignee = t.assignedTo === req.me.id;
+  const manager = canManageTask(req.me, t);
+  if (!assignee && !manager) return res.status(403).json({ error: 'Not allowed.' });
+  if (assignee && !manager) {
+    const ok = (s === 'IN_PROGRESS' && ['ACCEPTED', 'IN_PROGRESS'].includes(t.status)) ||
+               (s === 'COMPLETED' && ['ACCEPTED', 'IN_PROGRESS'].includes(t.status));
+    if (!ok) return res.status(400).json({ error: 'You can only start or complete an accepted task.' });
+  }
+  if (s === 'COMPLETED') { t.completedAt = Date.now(); t.progress = 100; }
+  if (s === 'IN_PROGRESS' && (req.body || {}).progress != null) t.progress = Math.max(0, Math.min(100, parseInt(req.body.progress, 10) || 0));
+  t.status = s; t.updatedAt = Date.now();
+  logActivity(t.teamId, req.me.name + ' set "' + t.title + '" to ' + s.toLowerCase().replace('_', ' '), { type: 'task', taskId: t.id }); save();
+  try { emitToTeam(t.teamId, 'task', { action: 'status', task: t }); } catch (e) {}
+  res.json({ ok: true, task: t });
+});
+
+// Leader/core verifies a completed task.
+app.post('/api/tasks/:id/verify', requireAuth, (req, res) => {
+  const t = findTask(req, res); if (!t) return;
+  if (!canManageTask(req.me, t)) return res.status(403).json({ error: 'Only the team leader or core team can verify.' });
+  if (t.status !== 'COMPLETED') return res.status(400).json({ error: 'Task must be completed first.' });
+  t.status = 'VERIFIED'; t.verifiedAt = Date.now(); t.progress = 100; t.updatedAt = Date.now();
+  logActivity(t.teamId, req.me.name + ' verified "' + t.title + '"', { type: 'task', taskId: t.id }); save();
+  try { emitToTeam(t.teamId, 'task', { action: 'verified', task: t }); } catch (e) {}
+  res.json({ ok: true, task: t });
+});
+
+// Leader/core edits (title, description, priority, deadline, reassign).
+app.put('/api/tasks/:id', requireAuth, (req, res) => {
+  const t = findTask(req, res); if (!t) return;
+  if (!canManageTask(req.me, t)) return res.status(403).json({ error: 'Only the team leader or core team can edit.' });
+  const b = req.body || {};
+  if (b.title !== undefined) { const ti = clean(b.title, 160); if (ti) t.title = ti; }
+  if (b.description !== undefined) t.description = clean(b.description, 2000);
+  if (b.priority !== undefined && TASK_PRIOS.includes(b.priority)) t.priority = b.priority;
+  if (b.deadline !== undefined) t.deadline = clean(b.deadline, 30);
+  if (b.assignedTo !== undefined) {
+    const aid = b.assignedTo ? parseInt(b.assignedTo, 10) : null;
+    if (!aid || !teamMemberIds(t.teamId).includes(aid)) return res.status(400).json({ error: 'Assignee must be on this team.' });
+    if (aid !== t.assignedTo) { t.assignedTo = aid; t.assignedToName = nameOf(aid); t.status = 'PENDING_ACCEPTANCE'; t.rejectionReason = ''; t.progress = 0; }
+  }
+  t.updatedAt = Date.now();
+  logActivity(t.teamId, req.me.name + ' updated "' + t.title + '"', { type: 'task', taskId: t.id }); save();
+  try { emitToTeam(t.teamId, 'task', { action: 'updated', task: t }); } catch (e) {}
+  res.json({ ok: true, task: t });
+});
+
+// Leader/core cancels a task.
+app.delete('/api/tasks/:id', requireAuth, (req, res) => {
+  const t = findTask(req, res); if (!t) return;
+  if (!canManageTask(req.me, t)) return res.status(403).json({ error: 'Not allowed.' });
+  t.status = 'CANCELLED'; t.updatedAt = Date.now();
+  logActivity(t.teamId, req.me.name + ' cancelled "' + t.title + '"', { type: 'task', taskId: t.id }); save();
+  try { emitToTeam(t.teamId, 'task', { action: 'cancelled', task: t }); } catch (e) {}
+  res.json({ ok: true, task: t });
+});
+
 /* ---------------- core team ---------------- */
 function adminRow(u) {
   const prog = progressFor(u.id);

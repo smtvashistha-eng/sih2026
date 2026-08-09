@@ -152,6 +152,27 @@
   .trow .links a{font-size:12px;font-weight:700;color:var(--blue);text-decoration:none}
   .trow .fb{margin-top:8px;font-size:12.5px;background:var(--saffron-soft);border:1px solid #F3D9AE;color:#8A5A12;border-radius:9px;padding:8px 10px}
 
+  /* assigned tasks */
+  .taskrow .top{cursor:pointer}
+  .prio{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:6px;flex:none}
+  .prio.p-high{background:#FEE2E2;color:#B91C1C}.prio.p-medium{background:var(--blue-soft);color:var(--blue-d)}.prio.p-low{background:var(--bd2);color:var(--sub)}
+  .tstat{font-size:9.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;padding:2px 7px;border-radius:6px;flex:none}
+  .s-PENDING_ACCEPTANCE{background:var(--saffron-soft);color:var(--saffron)}
+  .s-ACCEPTED,.s-IN_PROGRESS{background:var(--blue-soft);color:var(--blue-d)}
+  .s-COMPLETED{background:#EDE9FE;color:#6D28D9}.s-VERIFIED{background:var(--ok-soft);color:var(--ok)}
+  .s-REJECTED{background:#FEE2E2;color:#B91C1C}.s-CANCELLED{background:var(--bd2);color:var(--mut)}
+  .dl{font-size:11.5px;font-weight:700;color:var(--sub);flex:none}
+  .dl.over{color:#DC2626}.dl.soon{color:var(--blue)}
+  .emptytask{font-size:13px;color:var(--mut);text-align:center;padding:16px 0}
+  .assignform{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  @media(max-width:520px){.assignform{grid-template-columns:1fr}}
+  .assignform .full{grid-column:1/-1}
+  .modact{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+  .mrow{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--bd2);font-size:13.5px}
+  .mrow .k{color:var(--sub)}.mrow .v{color:var(--ink);font-weight:600;text-align:right}
+  .b.danger{color:#B91C1C;border-color:#F3C0C0}.b.danger:hover{background:#FEF2F2;border-color:#DC2626}
+  .b.ok{background:var(--ok);border-color:var(--ok);color:#fff}.b.ok:hover{background:#15803D}
+
   /* tasks (legacy board, kept for compatibility) */
   .tcols{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
   @media(max-width:820px){.tcols{grid-template-columns:1fr}}
@@ -275,6 +296,8 @@ function toast(t){const el=document.createElement('div');el.className='toast';el
 function initials(n){return (n||'?').split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();}
 function timeAgo(ts){if(!ts)return'';const s=(Date.now()-ts)/1000;if(s<60)return'just now';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';}
 let ME=null,TEAM=null,IDEAS=[],MILES=[],SUBS=[],CONN=null,chatTimer=null;
+let TASKS=[],TASKMETA={members:[],isLeader:false},taskSSE=null;
+async function loadTasks(){try{const d=await api('/api/my/tasks');TASKS=d.tasks||[];TASKMETA={members:d.members||[],isLeader:!!d.isLeader};}catch(e){TASKS=[];}}
 
 /* ---------- agreement (unchanged flow) ---------- */
 function agreementText(leader){
@@ -338,6 +361,10 @@ function readiness(){
 
 function nextMove(){
   const c=counts();
+  const mt=myTasks();
+  const od=mt.filter(isOverdue);if(od.length)return{eb:'Overdue',ico:'⏰',t:od[0].title,d:'This task is past its deadline — open it and update or complete it now.',target:'mytasks',label:'Open task'};
+  const pa=mt.filter(t=>t.status==='PENDING_ACCEPTANCE');if(pa.length)return{eb:'Awaiting you',ico:'📥',t:'Respond to: '+pa[0].title,d:'A task is waiting for you to accept or reject.',target:'mytasks',label:'Review'};
+  const ip=mt.filter(t=>t.status==='ACCEPTED'||t.status==='IN_PROGRESS');if(ip.length)return{eb:'In progress',ico:'🔨',t:ip[0].title,d:'Keep this task moving — mark it complete when done.',target:'mytasks',label:'Open task'};
   if(!TEAM.psId) return{eb:'Set up',ico:'🎯',t:'Choose your problem statement',d:'Enter your PS ID and its live submission count so we can gauge your odds.',target:'setup',focus:'psId',label:'Continue'};
   if(!TEAM.wantsLeader&&!TEAM.ideaName) return{eb:'Set up',ico:'💡',t:'Lock your primary idea',d:'Pick the idea your team will build from the arsenal.',target:'setup',focus:'idea',label:'Continue'};
   if(SUBS.some(s=>s.status==='changes')) return{eb:'Action needed',ico:'📝',t:'Review feedback & resubmit',d:'The core team requested changes on a target. Address it and resubmit.',target:'tasks',label:'Continue'};
@@ -360,6 +387,80 @@ function upcoming(){
   MILES.forEach(m=>{const s=subFor(m.id);if(!s||s.status==='changes')list.push({wk:m.week,t:m.title,ask:m.asks});});
   return list.slice(0,4);
 }
+
+/* ---------- tasks (Phase 2) ---------- */
+const TS_DONE=['COMPLETED','VERIFIED'],TS_OPEN=['PENDING_ACCEPTANCE','ACCEPTED','IN_PROGRESS'];
+function isOverdue(t){if(!t.deadline||!TS_OPEN.includes(t.status))return false;const d=new Date(t.deadline+'T23:59:59');return !isNaN(d)&&d.getTime()<Date.now();}
+function dlLabel(t){if(!t.deadline)return{txt:'No deadline',cls:''};const d=new Date(t.deadline+'T23:59:59');if(isNaN(d))return{txt:esc(t.deadline),cls:''};
+  const days=Math.ceil((d.getTime()-Date.now())/86400000);let txt,cls='';
+  if(TS_OPEN.includes(t.status)&&days<0){txt='Overdue '+(-days)+'d';cls='over';}
+  else if(days===0){txt='Due today';cls='soon';}else if(days===1){txt='Due tomorrow';cls='soon';}
+  else if(days>0&&days<=3){txt='Due in '+days+'d';cls='soon';}
+  else txt=d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+  return{txt,cls};}
+function myTasks(){return TASKS.filter(t=>t.assignedTo===ME.id&&t.status!=='CANCELLED');}
+function taskStats(){const mt=myTasks();const s={total:mt.length,pending:0,active:0,done:0,overdue:0};
+  mt.forEach(t=>{if(t.status==='PENDING_ACCEPTANCE')s.pending++;else if(t.status==='ACCEPTED'||t.status==='IN_PROGRESS')s.active++;else if(TS_DONE.includes(t.status))s.done++;if(isOverdue(t))s.overdue++;});return s;}
+function statusLabel(s){return s.charAt(0)+s.slice(1).toLowerCase().replace(/_/g,' ');}
+
+function taskRow(t){const dl=dlLabel(t);return '<div class="trow taskrow" data-topen="'+t.id+'"><div class="top">'+
+  '<span class="prio p-'+t.priority+'">'+t.priority.slice(0,4)+'</span>'+
+  '<span class="ti">'+esc(t.title)+'</span>'+
+  '<span class="tstat s-'+t.status+'">'+statusLabel(t.status)+'</span>'+
+  '<span class="dl '+dl.cls+'">'+dl.txt+'</span></div></div>';}
+
+function buildMyTasksCard(col){const mt=myTasks().slice().sort((a,b)=>{const ra=isOverdue(a)?0:(a.status==='PENDING_ACCEPTANCE'?1:2),rb=isOverdue(b)?0:(b.status==='PENDING_ACCEPTANCE'?1:2);return ra-rb;});
+  const list=mt.length?mt.map(taskRow).join(''):'<div class="emptytask">No tasks assigned to you yet.</div>';
+  return '<div class="cc '+(col||'col7')+'" id="mytasks"><h3 class="t"><span class="ico">📥</span> My tasks <span style="margin-left:auto;font-weight:700;color:var(--sub);text-transform:none;letter-spacing:0;font-size:12px">'+mt.length+' assigned</span></h3><div class="tlist">'+list+'</div></div>';}
+
+function buildTeamTasksCard(){
+  const opts=TASKMETA.members.map(m=>'<option value="'+m.id+'">'+esc(m.name)+(m.isLeader?' (leader)':'')+'</option>').join('');
+  const all=TASKS.filter(t=>t.status!=='CANCELLED').slice().sort((a,b)=>b.createdAt-a.createdAt);
+  const list=all.length?all.map(t=>{const dl=dlLabel(t);return '<div class="trow taskrow" data-topen="'+t.id+'"><div class="top"><span class="prio p-'+t.priority+'">'+t.priority.slice(0,4)+'</span><span class="ti">'+esc(t.title)+'</span><span class="tstat s-'+t.status+'">'+statusLabel(t.status)+'</span></div><div style="font-size:11.5px;color:var(--mut);margin-top:5px">→ '+esc(t.assignedToName||'unassigned')+(t.status==='REJECTED'&&t.rejectionReason?' · rejected: '+esc(t.rejectionReason):'')+' · <span class="'+dl.cls+'">'+dl.txt+'</span></div></div>';}).join(''):'<div class="emptytask">No team tasks yet. Assign the first one below.</div>';
+  return '<div class="cc col5" id="assign"><h3 class="t"><span class="ico">🧩</span> Assign & track (leader)</h3>'+
+    '<form class="assignform" id="assignForm"><input class="full" id="atTitle" placeholder="Task title" style="font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px"/>'+
+      '<select id="atWho" style="font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px">'+opts+'</select>'+
+      '<select id="atPrio" style="font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px"><option value="medium">Medium</option><option value="high">High</option><option value="low">Low</option></select>'+
+      '<input class="full" id="atDeadline" type="date" style="font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px"/>'+
+      '<textarea class="full" id="atDesc" placeholder="Description (optional)" style="font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;min-height:56px;resize:vertical"></textarea>'+
+      '<button class="b pri full" type="submit">Assign task</button><div class="err full" id="atErr"></div></form>'+
+    '<div class="tlist">'+list+'</div></div>';}
+
+function openTaskModal(id){const t=TASKS.find(x=>x.id===id);if(!t)return;
+  const mine=t.assignedTo===ME.id,leader=TASKMETA.isLeader;const dl=dlLabel(t);
+  let acts='';
+  if(mine&&t.status==='PENDING_ACCEPTANCE')acts='<button class="b ok" data-tact="accept" data-tid="'+t.id+'">Accept</button><button class="b danger" data-tact="rejectPrompt" data-tid="'+t.id+'">Reject</button>';
+  else if(mine&&t.status==='ACCEPTED')acts='<button class="b pri" data-tact="start" data-tid="'+t.id+'">Start work</button>';
+  else if(mine&&t.status==='IN_PROGRESS')acts='<button class="b ok" data-tact="complete" data-tid="'+t.id+'">Mark complete</button>';
+  if(leader&&t.status==='COMPLETED')acts+='<button class="b ok" data-tact="verify" data-tid="'+t.id+'">Verify</button>';
+  if(leader&&['REJECTED','PENDING_ACCEPTANCE'].includes(t.status))acts+='<button class="b" data-tact="reassignPrompt" data-tid="'+t.id+'">Reassign</button>';
+  if(leader&&t.status!=='CANCELLED'&&t.status!=='VERIFIED')acts+='<button class="b danger" data-tact="cancel" data-tid="'+t.id+'">Cancel task</button>';
+  const rej=t.rejectionReason?'<div class="mrow"><span class="k">Rejection reason</span><span class="v" style="max-width:60%;color:#B91C1C">'+esc(t.rejectionReason)+'</span></div>':'';
+  document.getElementById('modalRoot').innerHTML='<div class="overlay" id="tOverlay"><div class="modal">'+
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="prio p-'+t.priority+'">'+t.priority+'</span><span class="tstat s-'+t.status+'">'+statusLabel(t.status)+'</span><span class="dl '+dl.cls+'" style="margin-left:auto">'+dl.txt+'</span></div>'+
+    '<h2 style="font-size:20px;margin:6px 0 10px;color:var(--ink)">'+esc(t.title)+'</h2>'+
+    (t.description?'<p style="font-size:13.5px;color:var(--sub);line-height:1.55;margin:0 0 12px">'+esc(t.description)+'</p>':'')+
+    '<div class="mrow"><span class="k">Assigned to</span><span class="v">'+esc(t.assignedToName||'—')+'</span></div>'+
+    '<div class="mrow"><span class="k">Assigned by</span><span class="v">'+esc(t.createdByName)+(t.createdByRole==='core'?' (core team)':' (leader)')+'</span></div>'+
+    '<div class="mrow"><span class="k">Deadline</span><span class="v">'+(t.deadline?esc(t.deadline):'None')+'</span></div>'+
+    '<div class="mrow"><span class="k">Created</span><span class="v">'+new Date(t.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})+'</span></div>'+rej+
+    '<div class="modact" id="tActs">'+acts+'</div><div class="err" id="tmErr"></div>'+
+    '<button class="b" id="tClose" style="margin-top:14px;width:100%;justify-content:center">Close</button></div></div>';
+  document.getElementById('tClose').addEventListener('click',()=>document.getElementById('modalRoot').innerHTML='');
+  document.getElementById('tOverlay').addEventListener('click',e=>{if(e.target.id==='tOverlay')document.getElementById('modalRoot').innerHTML='';});
+}
+
+async function taskAction(id,act){const err=document.getElementById('tmErr');if(err)err.textContent='';
+  try{
+    if(act==='accept')await api('/api/tasks/'+id+'/accept',{method:'POST'});
+    else if(act==='start')await api('/api/tasks/'+id+'/status',{method:'POST',body:JSON.stringify({status:'IN_PROGRESS'})});
+    else if(act==='complete')await api('/api/tasks/'+id+'/status',{method:'POST',body:JSON.stringify({status:'COMPLETED'})});
+    else if(act==='verify')await api('/api/tasks/'+id+'/verify',{method:'POST'});
+    else if(act==='cancel'){if(!confirm('Cancel this task?'))return;await api('/api/tasks/'+id,{method:'DELETE'});}
+    else if(act==='rejectPrompt'){const reason=prompt('Reason for rejecting this task:');if(reason==null)return;if(!reason.trim()){if(err)err.textContent='A reason is required.';return;}await api('/api/tasks/'+id+'/reject',{method:'POST',body:JSON.stringify({reason:reason.trim()})});}
+    else if(act==='reassignPrompt'){const names=TASKMETA.members.map(m=>m.id+'='+m.name).join(', ');const who=prompt('Reassign to member id ('+names+'):');if(who==null)return;await api('/api/tasks/'+id,{method:'PUT',body:JSON.stringify({assignedTo:parseInt(who,10)})});}
+    document.getElementById('modalRoot').innerHTML='';await loadTasks();render();toast('Done ✓');
+  }catch(ex){if(err)err.textContent=ex.message;else toast(ex.message);}}
 
 /* ---------- chat (unchanged API) ---------- */
 async function loadChat(){
@@ -396,12 +497,20 @@ document.getElementById('profBtn').addEventListener('click',e=>{e.stopPropagatio
 document.getElementById('bellBtn').addEventListener('click',e=>{e.stopPropagation();location.hash='#chat';});
 document.addEventListener('click',closeDrops);
 async function doLogout(){await api('/api/logout',{method:'POST'});location.href='/';}
+// one-time delegation for task modal action buttons
+document.addEventListener('click',e=>{const b=e.target.closest('[data-tact]');if(!b)return;e.stopPropagation();taskAction(parseInt(b.dataset.tid,10),b.dataset.tact);});
+// realtime: refresh tasks (and chat) on team SSE events
+function startSSE(){try{if(taskSSE)taskSSE.close();taskSSE=new EventSource('/api/connect/stream');
+  taskSSE.addEventListener('task',async()=>{await loadTasks();render();});
+  taskSSE.addEventListener('message',()=>{loadChat();});
+}catch(e){}}
 
 /* ---------- main render ---------- */
 function render(){
   const app=document.getElementById('app');
   setHeader();
-  const c=counts();const nm=nextMove();const rd=readiness();const o=odds();const g=new Date().getHours();
+  const c=counts();const ts=taskStats();const nm=nextMove();const rd=readiness();const o=odds();const g=new Date().getHours();
+  const taskCards=TASKMETA.isLeader?(buildMyTasksCard('col7')+buildTeamTasksCard()):buildMyTasksCard('col12');
   const hi=g<12?'Good morning':g<17?'Good afternoon':'Good evening';
   const idea=IDEAS.find(i=>i.id===TEAM.ideaId);
   const problemName=TEAM.wantsLeader?(TEAM.captainName+"'s idea"):(TEAM.ideaName||'Not chosen yet');
@@ -460,13 +569,13 @@ function render(){
         '<div class="ovs"><div class="k">Team ID</div><div class="v">'+esc(TEAM.teamCode)+'</div></div>'+
         '<div class="ovs ovprog"><div class="k">Overall progress</div><div class="v">'+c.approved+'/'+c.total+' targets</div><div class="ovbar"><i style="width:'+c.pct+'%"></i></div></div></div></div>'+
 
-    // STAT ROW (real, from submissions)
+    // STAT ROW (assigned tasks — real)
     '<div class="cc col12 tight"><div class="statrow">'+
-      '<div class="stat"><div class="v">'+c.total+'</div><div class="k">Targets</div></div>'+
-      '<div class="stat dn"><div class="v">'+c.approved+'</div><div class="k">Approved</div></div>'+
-      '<div class="stat up"><div class="v">'+c.submitted+'</div><div class="k">In review</div></div>'+
-      '<div class="stat ov"><div class="v">'+c.changes+'</div><div class="k">Needs fix</div></div>'+
-      '<div class="stat"><div class="v">'+upcoming().length+'</div><div class="k">Upcoming</div></div>'+'</div></div>'+
+      '<div class="stat"><div class="v">'+ts.total+'</div><div class="k">My tasks</div></div>'+
+      '<div class="stat up"><div class="v">'+ts.pending+'</div><div class="k">To accept</div></div>'+
+      '<div class="stat up"><div class="v">'+ts.active+'</div><div class="k">In progress</div></div>'+
+      '<div class="stat dn"><div class="v">'+ts.done+'</div><div class="k">Completed</div></div>'+
+      '<div class="stat ov"><div class="v">'+ts.overdue+'</div><div class="k">Overdue</div></div>'+'</div></div>'+
 
     // NEXT MOVE (7)
     '<div class="cc col7 nm"><div class="ring">'+nm.ico+'</div><div><div class="eb">Your next move</div><h2>'+nm.t+'</h2><p>'+nm.d+'</p></div>'+
@@ -479,8 +588,11 @@ function render(){
     // JOURNEY (12)
     '<div class="cc col12"><h3 class="t"><span class="ico">🧭</span> Your SIH journey</h3><div class="jour">'+jhtml+'</div></div>'+
 
-    // TASK CENTER (7) — compact list
-    '<div class="cc col7" id="tasks"><h3 class="t"><span class="ico">🗂️</span> Task center <span style="margin-left:auto;font-weight:700;color:var(--sub);text-transform:none;letter-spacing:0;font-size:12px">'+c.approved+' / '+c.total+' approved</span></h3>'+
+    // ASSIGNED TASKS (Phase 2) — My tasks (+ leader assign/track)
+    taskCards+
+
+    // 8-WEEK TARGETS (7) — milestones, compact list
+    '<div class="cc col7" id="tasks"><h3 class="t"><span class="ico">🗂️</span> 8-week targets <span style="margin-left:auto;font-weight:700;color:var(--sub);text-transform:none;letter-spacing:0;font-size:12px">'+c.approved+' / '+c.total+' approved</span></h3>'+
       '<div class="tfilter"><button class="on" data-f="all">All</button><button data-f="todo">To do ('+gc.todo+')</button><button data-f="prog">In progress ('+(gc.prog)+')</button><button data-f="chg">Needs fix ('+gc.chg+')</button><button data-f="done">Done ('+gc.done+')</button></div>'+
       '<div class="tlist" id="tlist">'+tlistHtml+'</div></div>'+
 
@@ -567,6 +679,11 @@ function render(){
   MILES.forEach(m=>{const f=document.getElementById('f-'+m.id);if(!f)return;f.addEventListener('submit',async e=>{e.preventDefault();const er=f.querySelector('.err');er.textContent='';const fd=new FormData(f);try{const d=await api('/api/my/submission',{method:'POST',body:JSON.stringify({milestoneId:m.id,github:fd.get('github'),deck:fd.get('deck'),demo:fd.get('demo'),live:fd.get('live'),notes:fd.get('notes')})});SUBS=SUBS.filter(s=>s.milestoneId!==m.id);SUBS.push(d.submission);render();toast('Submitted ✓');}catch(ex){er.textContent=ex.message;}});});
   document.querySelectorAll('[data-ack]').forEach(b=>b.addEventListener('click',async()=>{await api('/api/my/directive/'+b.dataset.ack+'/ack',{method:'POST'});const dd=TEAM.directives.find(x=>x.id==b.dataset.ack);if(dd)dd.done=true;render();}));
   document.getElementById('chatForm').addEventListener('submit',async e=>{e.preventDefault();const inp=document.getElementById('chatInput');const t=inp.value.trim();if(!t)return;inp.value='';try{await api('/api/my/comment',{method:'POST',body:JSON.stringify({text:t})});await loadChat();}catch(ex){toast(ex.message);}});
+  document.querySelectorAll('.taskrow').forEach(r=>r.addEventListener('click',()=>openTaskModal(parseInt(r.dataset.topen,10))));
+  const af=document.getElementById('assignForm');
+  if(af)af.addEventListener('submit',async e=>{e.preventDefault();const err=document.getElementById('atErr');err.textContent='';
+    const body={title:document.getElementById('atTitle').value,assignedTo:document.getElementById('atWho').value,priority:document.getElementById('atPrio').value,deadline:document.getElementById('atDeadline').value,description:document.getElementById('atDesc').value};
+    try{await api('/api/tasks',{method:'POST',body:JSON.stringify(body)});await loadTasks();render();toast('Task assigned ✓');}catch(ex){err.textContent=ex.message;}});
   loadChat();
   if(chatTimer)clearInterval(chatTimer);chatTimer=setInterval(loadChat,8000);
 }
@@ -580,7 +697,9 @@ async function boot(){
   if(!TEAM){location.href='/status.html';return;}
   IDEAS=await api('/api/ideas');MILES=await api('/api/milestones');SUBS=await api('/api/my/submissions');
   CONN=await api('/api/connect/summary').catch(()=>null);
+  await loadTasks();
   render();
+  startSSE();
 }
 boot();
 </script>

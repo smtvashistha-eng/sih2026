@@ -5,6 +5,62 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Core Team — SIH 2026 Command Center</title>
 <link rel="stylesheet" href="/app.css" />
+<link rel="preconnect" href="https://api.fontshare.com" />
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700,900&display=swap" rel="stylesheet" />
+<style>
+  /* ===== SIH 2026 Design System — Admin visual reskin (skin only, no logic) =====
+     Overrides app.css CSS variables + a few surfaces so the Command Center matches
+     the homepage/apply design language. No IDs, classes, structure or JS touched. */
+  :root, :root[data-theme="light"]{
+    --bg:#F7F6F2; --surface:#FFFFFF; --surface-2:#F0F2F5;
+    --ink:#101828; --muted:#475467; --faint:#667085;
+    --line:#DDE2E8; --line-strong:#C9D0DA;
+    --accent:#173B7A; --accent-hover:#123267;
+    --target:#16805B; --good:#16805B; --warn:#E87519; --gold:#E87519; --crowd:#C9362B;
+    --midnight:#0B1220;
+    --shadow:0 12px 40px rgba(15,23,42,.06);
+    --sans:"Satoshi",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#F7F6F2; --surface:#FFFFFF; --surface-2:#F0F2F5;
+      --ink:#101828; --muted:#475467; --faint:#667085;
+      --line:#DDE2E8; --line-strong:#C9D0DA;
+      --accent:#173B7A; --target:#16805B; --good:#16805B; --warn:#E87519; --gold:#E87519; --crowd:#C9362B;
+      --shadow:0 12px 40px rgba(15,23,42,.06);
+    }
+  }
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink)}
+
+  /* premium dark command-center header */
+  .topbar{background:var(--midnight);border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter:none}
+  .topbar .brand{color:#fff}
+  .topbar .brand .mk{background:var(--accent)}
+  .topbar .brand small{color:rgba(255,255,255,.55)}
+  .topbar .who{color:rgba(255,255,255,.72)}
+  .topbar .who b{color:#fff}
+  .topbar .btn.ghost{color:#fff;border-color:rgba(255,255,255,.24);background:transparent}
+  .topbar .btn.ghost:hover{border-color:#fff;background:rgba(255,255,255,.08)}
+
+  /* premium surfaces + controls */
+  .card{border-radius:18px;box-shadow:var(--shadow)}
+  .btn{font-family:var(--sans);border-radius:12px}
+  .btn.accent:hover{background:var(--accent-hover)}
+  .stat{border-radius:16px}
+  .col{border-radius:16px}
+  .app{border-radius:12px}
+  .qrframe{border-radius:18px}
+  .modal{border-radius:24px}
+  .cred{border-radius:10px}
+
+  /* table polish — subtle header, soft hover, no heavy borders */
+  table.t th{background:var(--surface-2);letter-spacing:.03em}
+  table.t tbody tr:hover td{background:#F7F9FB}
+
+  /* filter chips: active = navy (overrides inline dark state, visual only) */
+  .fchip{border-radius:999px}
+  .fchip[aria-pressed="true"]{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important}
+</style>
 </head>
 <body>
 <div class="topbar"><div class="in">

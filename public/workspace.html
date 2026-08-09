@@ -3,34 +3,239 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>My Team — SIH 2026</title>
+<title>Student Command Center — SIH 2026</title>
 <link rel="stylesheet" href="/app.css" />
 <style>
-  .chatbox{display:flex;flex-direction:column;height:340px}
+  /* ============ SIH 2026 · Student Command Center ============
+     Skin only — reuses app.css tokens. No logic/API/field changes. */
+  :root{
+    --navy:#0B1220; --blue:#2563EB; --blue-d:#1D4ED8; --blue-soft:#EAF1FF;
+    --saffron:#D97706; --saffron-soft:#FFF4E5; --ok:#16A34A; --ok-soft:#EAF8EF;
+    --ink:#101828; --sub:#667085; --mut:#98A2B3; --bd:#E4E7EC; --bd2:#EEF0F3;
+    --wbg:#F7F7F5; --card:#FFFFFF;
+  }
+  body{background:var(--wbg)}
+  .cc-hidden{display:none!important}
+
+  /* ---- header ---- */
+  .cchead{position:sticky;top:0;z-index:40;background:rgba(247,247,245,.85);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--bd)}
+  .cchead .in{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:14px;
+    padding:12px clamp(16px,4vw,28px)}
+  .ccbrand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em;color:var(--ink);font-size:16px}
+  .ccbrand .mk{width:22px;height:22px;border-radius:7px;background:linear-gradient(135deg,var(--blue),var(--saffron));display:inline-block}
+  .ccbrand small{font-weight:600;font-size:11px;color:var(--sub);letter-spacing:.02em}
+  .ccnav{display:flex;gap:2px;margin-left:12px}
+  .ccnav a{font-size:13.5px;font-weight:600;color:var(--sub);padding:7px 12px;border-radius:9px;text-decoration:none;transition:.15s}
+  .ccnav a:hover{color:var(--ink);background:var(--blue-soft)}
+  .ccsp{flex:1}
+  .icobtn{position:relative;width:38px;height:38px;border-radius:11px;border:1px solid var(--bd);background:var(--card);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:.15s}
+  .icobtn:hover{border-color:var(--blue);background:var(--blue-soft)}
+  .badge-dot{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;
+    background:var(--blue);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--wbg)}
+  .ccprof{display:flex;align-items:center;gap:9px;padding:5px 12px 5px 6px;border:1px solid var(--bd);border-radius:999px;background:var(--card);cursor:pointer;transition:.15s}
+  .ccprof:hover{border-color:var(--blue)}
+  .ccav{width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+  .ccprof .nm{font-size:13px;font-weight:700;color:var(--ink);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ccmenubtn{display:none;width:38px;height:38px;border-radius:11px;border:1px solid var(--bd);background:var(--card);align-items:center;justify-content:center;font-size:18px;cursor:pointer}
+  .ccdrop{position:absolute;top:60px;right:clamp(16px,4vw,28px);background:var(--card);border:1px solid var(--bd);
+    border-radius:14px;box-shadow:0 16px 40px rgba(16,24,40,.14);padding:6px;min-width:190px;z-index:50}
+  .ccdrop a,.ccdrop button{display:block;width:100%;text-align:left;background:none;border:0;font:inherit;
+    font-size:13.5px;font-weight:600;color:var(--ink);padding:10px 12px;border-radius:9px;cursor:pointer;text-decoration:none}
+  .ccdrop a:hover,.ccdrop button:hover{background:var(--blue-soft);color:var(--blue-d)}
+  .ccdrop .sep{height:1px;background:var(--bd2);margin:4px 6px}
+
+  /* ---- shell / grid ---- */
+  .ccwrap{max-width:1240px;margin:0 auto;padding:clamp(18px,3vw,28px) clamp(16px,4vw,28px) 60px}
+  .ccgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+  .col12{grid-column:span 12}.col8{grid-column:span 8}.col6{grid-column:span 6}.col4{grid-column:span 4}
+  @media(max-width:980px){.col8,.col6,.col4{grid-column:span 12}}
+
+  /* ---- cards ---- */
+  .cc{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:20px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .cc.tight{padding:16px}
+  .cc h3.t{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0 0 12px;display:flex;align-items:center;gap:8px}
+  .cc h3.t .ico{font-size:14px}
+  .cc .lnk{margin-left:auto;font-size:12px;font-weight:700;color:var(--blue);text-decoration:none;text-transform:none;letter-spacing:0}
+  .cc .lnk:hover{color:var(--blue-d)}
+
+  /* overview */
+  .ov{display:flex;align-items:center;gap:22px;flex-wrap:wrap;
+    background:linear-gradient(120deg,var(--navy),#141d31);border:1px solid var(--navy);color:#fff}
+  .ov h2{font-size:clamp(19px,2.4vw,25px);font-weight:800;letter-spacing:-.02em;margin:0 0 4px}
+  .ov .sub{color:#AEB7C6;font-size:13.5px}
+  .ov .ovstats{display:flex;gap:26px;flex-wrap:wrap;margin-left:auto}
+  .ovs .k{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8A94A6}
+  .ovs .v{font-size:16px;font-weight:800;margin-top:3px;color:#fff;font-variant-numeric:tabular-nums}
+  .ovprog{min-width:150px}
+  .ovbar{height:8px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:7px}
+  .ovbar i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),#60A5FA);border-radius:99px;transition:width .5s ease}
+
+  /* next move */
+  .nm{border:1px solid var(--blue);background:linear-gradient(120deg,var(--blue-soft),var(--card) 70%);
+    display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .nm .ring{width:52px;height:52px;border-radius:14px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
+  .nm .eb{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-d)}
+  .nm h2{font-size:19px;font-weight:800;letter-spacing:-.01em;margin:3px 0 2px;color:var(--ink)}
+  .nm p{font-size:13.5px;color:var(--sub);margin:0}
+  .nm .go{margin-left:auto}
+
+  /* buttons (local, match app.css btn) */
+  .b{display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:13.5px;font-weight:700;
+    padding:10px 16px;border-radius:11px;border:1px solid var(--bd);background:var(--card);color:var(--ink);cursor:pointer;text-decoration:none;transition:.15s}
+  .b:hover{border-color:var(--blue);color:var(--blue-d)}
+  .b.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+  .b.pri:hover{background:var(--blue-d);color:#fff}
+  .b.sm{padding:7px 12px;font-size:12.5px;border-radius:9px}
+
+  /* journey stepper */
+  .jour{display:flex;flex-wrap:wrap;gap:6px;overflow:hidden}
+  .step{flex:1;min-width:76px;text-align:center;position:relative}
+  .step .dot{width:26px;height:26px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:800;background:var(--bd2);color:var(--mut);border:2px solid var(--bd);position:relative}
+  .step.done .dot{background:var(--ok);border-color:var(--ok);color:#fff}
+  .step.cur .dot{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 0 0 4px var(--blue-soft)}
+  .step .lb{font-size:10.5px;font-weight:700;color:var(--mut);line-height:1.2}
+  .step.done .lb{color:var(--ink)}.step.cur .lb{color:var(--blue-d)}
+  .step .bar{position:absolute;top:12px;left:50%;width:100%;height:2px;background:var(--bd);z-index:-1}
+  .step.done .bar{background:var(--ok)}
+
+  /* readiness / checklist */
+  .chk{display:flex;flex-direction:column;gap:8px}
+  .chk .it{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--ink)}
+  .chk .bx{width:20px;height:20px;border-radius:6px;border:2px solid var(--bd);flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:transparent}
+  .chk .it.on .bx{background:var(--ok);border-color:var(--ok);color:#fff}
+  .chk .it.off{color:var(--sub)}
+  .rd-top{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+  .rd-top .pct{font-size:30px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .rd-top .lb{font-size:12px;color:var(--sub)}
+  .miniprog{height:8px;border-radius:99px;background:var(--bd2);overflow:hidden;margin:2px 0 14px}
+  .miniprog i{display:block;height:100%;background:linear-gradient(90deg,var(--ok),#4ADE80);border-radius:99px;transition:width .5s}
+
+  /* fields */
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:520px){.fgrid{grid-template-columns:1fr}}
+  .fld{display:flex;flex-direction:column;gap:5px}
+  .fld label{font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--mut)}
+  .fld input,.fld select,.fld textarea{font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--ink);width:100%}
+  .fld input:focus,.fld select:focus,.fld textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+  .fld textarea{min-height:70px;resize:vertical}
+  .err{color:#DC2626;font-size:12.5px;margin-top:6px;min-height:1em}
+
+  /* tasks */
+  .tcols{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:820px){.tcols{grid-template-columns:1fr}}
+  .tcol .hd{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:0 0 10px;display:flex;align-items:center;gap:7px}
+  .tcol .hd .cnt{background:var(--bd2);color:var(--sub);border-radius:99px;padding:1px 8px;font-size:11px}
+  .tcol.todo .hd .cnt{background:var(--saffron-soft);color:var(--saffron)}
+  .tcol.prog .hd .cnt{background:var(--blue-soft);color:var(--blue-d)}
+  .tcol.done .hd .cnt{background:var(--ok-soft);color:var(--ok)}
+  .task{border:1px solid var(--bd);border-radius:13px;padding:12px 13px;margin-bottom:10px;background:var(--card);transition:.15s}
+  .task:hover{border-color:var(--bd2);box-shadow:0 6px 18px rgba(16,24,40,.06);transform:translateY(-1px)}
+  .task .wk{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-d);background:var(--blue-soft);border-radius:6px;padding:2px 7px}
+  .task h4{font-size:14px;font-weight:700;color:var(--ink);margin:8px 0 4px}
+  .task .dt{font-size:12.5px;color:var(--sub);line-height:1.45}
+  .task .ask{font-size:11.5px;color:var(--mut);margin-top:6px}
+  .task .links{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+  .task .links a{font-size:12px;font-weight:700;color:var(--blue);text-decoration:none}
+  .task .fb{margin-top:8px;font-size:12.5px;background:var(--saffron-soft);border:1px solid #F3D9AE;color:#8A5A12;border-radius:9px;padding:8px 10px}
+  .pill{font-size:10px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;padding:3px 8px;border-radius:6px}
+  .pill.p-todo{background:var(--bd2);color:var(--sub)}
+  .pill.p-sub{background:var(--blue-soft);color:var(--blue-d)}
+  .pill.p-appr{background:var(--ok-soft);color:var(--ok)}
+  .pill.p-chg{background:var(--saffron-soft);color:var(--saffron)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:520px){.row2{grid-template-columns:1fr}}
+
+  /* team hub / avatars */
+  .avatars{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 4px}
+  .av{width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;border:2px solid var(--card)}
+  .av.cap{background:var(--navy)}
+  .av.empty{background:var(--bd2);color:var(--mut);border:1px dashed var(--bd)}
+  .kv{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--bd2);font-size:13.5px}
+  .kv:last-child{border-bottom:0}
+  .kv .k{color:var(--sub)}.kv .v{color:var(--ink);font-weight:700;text-align:right}
+  .cred{font-family:var(--mono,monospace);font-size:12.5px;background:var(--wbg);border:1px solid var(--bd);border-radius:8px;padding:4px 9px;color:var(--ink)}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .tag{font-size:11.5px;font-weight:600;color:var(--sub);background:var(--wbg);border:1px solid var(--bd);border-radius:7px;padding:3px 9px}
+
+  /* chat */
+  .chatbox{display:flex;flex-direction:column;height:320px}
   .msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px}
-  .msg{max-width:82%;padding:8px 12px;border-radius:12px;font-size:13.5px;line-height:1.45}
+  .msg{max-width:82%;padding:8px 12px;border-radius:13px;font-size:13.5px;line-height:1.45}
   .msg .a{font-size:11px;font-weight:700;margin-bottom:2px;display:flex;gap:6px;align-items:center}
-  .msg.mine{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+  .msg.mine{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:4px}
   .msg.mine .a{color:#fff;opacity:.9}
-  .msg.other{align-self:flex-start;background:var(--surface-2);border:1px solid var(--line);border-bottom-left-radius:4px}
-  .msg.core{align-self:flex-start;background:color-mix(in srgb,var(--gold) 16%,var(--surface));border:1px solid color-mix(in srgb,var(--gold) 40%,var(--line))}
+  .msg.other{align-self:flex-start;background:var(--wbg);border:1px solid var(--bd);border-bottom-left-radius:4px;color:var(--ink)}
+  .msg.core{align-self:flex-start;background:var(--saffron-soft);border:1px solid #F3D9AE;color:#7A4E10}
   .msg .t{font-size:10px;opacity:.6;margin-top:3px}
+  .cmini{font-size:9px;padding:1px 5px;border-radius:5px;font-weight:800}
+  .cmini.core{background:#F3D9AE;color:#7A4E10}.cmini.cap{background:var(--navy);color:#fff}
   .chatform{display:flex;gap:8px;margin-top:10px}
-  .invite{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 12%,var(--surface)),var(--surface));border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line))}
-  .avatars{display:flex;gap:6px;flex-wrap:wrap}
-  .av{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid var(--surface)}
-  .av.empty{background:var(--surface-2);color:var(--faint);border:1px dashed var(--line-strong)}
+  .chatform input{flex:1;font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--card)}
+  .chatform input:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+
+  /* announcements / activity / upcoming lists */
+  .feed{display:flex;flex-direction:column;gap:2px}
+  .fi{display:flex;gap:11px;padding:10px 2px;border-bottom:1px solid var(--bd2)}
+  .fi:last-child{border-bottom:0}
+  .fi .fd{width:30px;height:30px;border-radius:9px;background:var(--wbg);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:14px;flex:none}
+  .fi .ft{flex:1;font-size:13px;color:var(--ink);line-height:1.4}
+  .fi .fm{font-size:11.5px;color:var(--mut);margin-top:2px}
+  .fi.unread{position:relative}
+  .fi.unread::before{content:"";position:absolute;left:-6px;top:16px;width:6px;height:6px;border-radius:50%;background:var(--blue)}
+  .empty{font-size:13px;color:var(--mut);text-align:center;padding:18px 0}
+
+  /* quick actions */
+  .qa{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media(max-width:520px){.qa{grid-template-columns:repeat(2,1fr)}}
+  .qa a{display:flex;flex-direction:column;gap:6px;padding:14px 12px;border:1px solid var(--bd);border-radius:13px;text-decoration:none;background:var(--card);transition:.15s}
+  .qa a:hover{border-color:var(--blue);background:var(--blue-soft);transform:translateY(-1px)}
+  .qa .qi{font-size:20px}
+  .qa .ql{font-size:12.5px;font-weight:700;color:var(--ink)}
+
+  /* odds mini */
+  .odds{text-align:center}
+  .odds .big{font-size:36px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
+  .odds .lb{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-top:4px}
+  .odds .pv{font-size:12.5px;font-weight:700;margin-top:8px}
+  .prog{height:9px;border-radius:99px;background:var(--bd2);overflow:hidden;margin-top:8px}
+  .prog i{display:block;height:100%;background:linear-gradient(90deg,var(--ok),var(--saffron));border-radius:99px;transition:width .3s}
+
+  @media(max-width:820px){
+    .ccnav{display:none} .ccprof .nm{display:none} .ccmenubtn{display:flex}
+    .ov .ovstats{margin-left:0;width:100%;justify-content:space-between;gap:14px}
+  }
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--navy);color:#fff;
+    padding:11px 18px;border-radius:11px;font-size:13.5px;font-weight:600;box-shadow:0 12px 30px rgba(16,24,40,.25);z-index:99}
+  /* agreement modal reuse */
+  .overlay{position:fixed;inset:0;background:rgba(11,18,32,.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:80}
+  .modal{max-width:520px;width:100%;background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:24px;max-height:90vh;overflow:auto}
+  .agree{font-size:13.5px;color:var(--sub);line-height:1.6}.agree h4{color:var(--ink);margin:0 0 8px}.agree ol{margin:0;padding-left:18px}
+  .checkline{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;color:var(--ink);margin:14px 0}
 </style>
 </head>
 <body>
-<div class="topbar"><div class="in">
-  <span class="brand"><span class="mk"></span> SIH 2026 <small id="roleTag">Team</small></span>
-  <span class="spacer"></span><span class="who" id="who"></span>
-  <a class="btn sm ghost" href="/connect.html">💬 SIH Connect</a>
-  <button class="btn sm ghost" id="logout">Log out</button>
-</div></div>
 
-<div class="wrap grid" id="app" style="gap:18px"><div class="card pad">Loading…</div></div>
+<header class="cchead">
+  <div class="in">
+    <span class="ccbrand"><span class="mk"></span> SIH 2026 <small id="roleTag">Command Center</small></span>
+    <nav class="ccnav">
+      <a href="#top">Dashboard</a><a href="#team">Team</a><a href="#tasks">Tasks</a>
+      <a href="#chat">Chat</a><a href="#resources">Resources</a>
+    </nav>
+    <span class="ccsp"></span>
+    <button class="icobtn" id="bellBtn" title="Notifications">🔔<span class="badge-dot cc-hidden" id="bellCt">0</span></button>
+    <div class="ccprof" id="profBtn"><span class="ccav" id="profAv">?</span><span class="nm" id="profNm">…</span></div>
+    <button class="ccmenubtn" id="menuBtn">☰</button>
+  </div>
+</header>
+
+<div class="ccwrap"><a id="top"></a>
+  <div class="ccgrid" id="app"><div class="cc col12">Loading your command center…</div></div>
+</div>
+<div id="dropRoot"></div>
 <div id="modalRoot"></div>
 
 <script src="/route.js"></script>
@@ -39,19 +244,21 @@ async function api(u,o){const r=await fetch(u,Object.assign({headers:{'Content-T
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function toast(t){const el=document.createElement('div');el.className='toast';el.textContent=t;document.body.appendChild(el);setTimeout(()=>el.remove(),1800);}
 function initials(n){return (n||'?').split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();}
-let ME=null,TEAM=null,IDEAS=[],MILES=[],SUBS=[],chatTimer=null;
+function timeAgo(ts){if(!ts)return'';const s=(Date.now()-ts)/1000;if(s<60)return'just now';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';}
+let ME=null,TEAM=null,IDEAS=[],MILES=[],SUBS=[],CONN=null,chatTimer=null;
 
+/* ---------- agreement (unchanged flow) ---------- */
 function agreementText(leader){
   if(leader) return '<h4>Participation Agreement (Idea Owner)</h4><ol><li>The idea I registered is my own original work and I <b>retain its ownership</b>.</li><li>I authorise the campaign to mentor and field this idea at SIH 2026.</li><li>My teammates contribute as members and make no ownership claim.</li><li>The core team may remove any participant for misconduct or inactivity.</li><li>I will represent the college professionally.</li></ol>';
   return '<h4>Idea &amp; Participation Agreement</h4><ol><li>The campaign problem ideas are the <b>intellectual property of the organiser</b>.</li><li>I join as a team member and claim <b>no ownership or commercial rights</b> over the idea.</li><li>I will not reuse or independently pursue this idea outside the campaign.</li><li>The core team may reassign or remove me for misconduct, inactivity or unwanted activity.</li><li>I will represent the college professionally.</li></ol>';
 }
 function showAgreement(){
-  document.getElementById('modalRoot').innerHTML='<div class="overlay"><div class="card pad modal">'+
-    '<div style="font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:700">Team '+esc(TEAM?TEAM.teamCode:'')+' — before you enter</div>'+
-    '<h2 style="font-size:22px;margin:8px 0 12px">Sign the agreement</h2><div class="agree">'+agreementText(TEAM&&TEAM.wantsLeader)+'</div>'+
+  document.getElementById('modalRoot').innerHTML='<div class="overlay"><div class="modal">'+
+    '<div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--blue-d);font-weight:800">Team '+esc(TEAM?TEAM.teamCode:'')+' — before you enter</div>'+
+    '<h2 style="font-size:22px;margin:8px 0 12px;color:var(--ink)">Sign the agreement</h2><div class="agree">'+agreementText(TEAM&&TEAM.wantsLeader)+'</div>'+
     '<label class="checkline"><input type="checkbox" id="agChk" /> <span>I have read and accept the above terms.</span></label>'+
-    '<div class="field"><label class="f" for="agName">Type your full name to sign</label><input id="agName" value="'+esc(ME.name)+'"/></div>'+
-    '<button class="btn accent" id="agBtn" style="width:100%">Sign &amp; enter</button><div class="err" id="agErr"></div></div></div>';
+    '<div class="fld"><label for="agName">Type your full name to sign</label><input id="agName" value="'+esc(ME.name)+'"/></div>'+
+    '<button class="b pri" id="agBtn" style="width:100%;margin-top:14px;justify-content:center">Sign &amp; enter</button><div class="err" id="agErr"></div></div></div>';
   document.getElementById('agBtn').addEventListener('click',async()=>{
     const err=document.getElementById('agErr');err.textContent='';
     try{await api('/api/my/sign',{method:'POST',body:JSON.stringify({agree:document.getElementById('agChk').checked,signedName:document.getElementById('agName').value})});document.getElementById('modalRoot').innerHTML='';toast('Signed ✓ Welcome');boot();}
@@ -60,88 +267,268 @@ function showAgreement(){
 }
 
 function fillIdeas(sel,val){sel.innerHTML='<option value="">— select —</option>'+IDEAS.map(i=>'<option value="'+i.id+'"'+(val==i.id?' selected':'')+'>'+esc(i.name)+' · '+esc(i.theme)+(i.zone==='open'?' (attack)':i.zone==='proven'?' (proven)':'')+'</option>').join('');}
-function odds(){const n=TEAM&&TEAM.psCount?Number(TEAM.psCount):null;if(!n)return{t:'Enter your PS submission count',c:'var(--muted)',big:'—',w:0};const o=Math.min(100,5/n*100);let t,c;if(n<=60){t='OPEN SEAT — great pick';c='var(--target)';}else if(n<=180){t='WORKABLE — build strong';c='var(--gold)';}else if(n<=350){t='CROWDED — only if elite';c='var(--accent)';}else{t='NEAR-LOCKED — switch';c='var(--crowd)';}return{t,c,big:o.toFixed(1)+'%',w:Math.max(4,Math.min(100,(1-(n-5)/495)*100))};}
+function odds(){const n=TEAM&&TEAM.psCount?Number(TEAM.psCount):null;if(!n)return{t:'Enter your PS submission count',c:'var(--mut)',big:'—',w:0};const o=Math.min(100,5/n*100);let t,c;if(n<=60){t='OPEN SEAT — great pick';c='var(--ok)';}else if(n<=180){t='WORKABLE — build strong';c='var(--saffron)';}else if(n<=350){t='CROWDED — only if elite';c='var(--blue)';}else{t='NEAR-LOCKED — switch';c='#DC2626';}return{t,c,big:o.toFixed(1)+'%',w:Math.max(4,Math.min(100,(1-(n-5)/495)*100))};}
 
+/* ---------- derived state (only real data) ---------- */
+function subFor(mid){return SUBS.find(s=>s.milestoneId===mid)||null;}
+function counts(){let approved=0,submitted=0,changes=0;MILES.forEach(m=>{const s=subFor(m.id);if(!s)return;if(s.status==='approved')approved++;else if(s.status==='submitted')submitted++;else if(s.status==='changes')changes++;});return{approved,submitted,changes,total:MILES.length,pct:MILES.length?Math.round(approved/MILES.length*100):0};}
+function teamSize(){return (TEAM.memberAccounts?TEAM.memberAccounts.length:0)+1;}
+function problemChosen(){return !!(TEAM.psId||TEAM.ideaName||(TEAM.wantsLeader&&TEAM.ownIdeaText));}
+
+function journey(){
+  const c=counts();const built=SUBS.length>0;const anyChg=SUBS.some(s=>s.status==='changes'||s.status==='submitted');
+  const steps=[
+    {lb:'Applied',done:true},
+    {lb:'Selected',done:true},
+    {lb:'Team formed',done:teamSize()>=2},
+    {lb:'Problem chosen',done:problemChosen()},
+    {lb:'Build',done:built},
+    {lb:'Review',done:SUBS.some(s=>s.status==='approved'||s.status==='submitted')},
+    {lb:'Submission',done:c.approved>=6},
+    {lb:'Finals',done:false}
+  ];
+  let curSet=false;
+  for(const s of steps){if(!s.done&&!curSet){s.cur=true;curSet=true;}}
+  return steps;
+}
+function currentStageName(){const j=journey();const cur=j.find(s=>s.cur);return cur?cur.lb:'Finals ready';}
+
+function readiness(){
+  const c=counts();
+  const items=[
+    {lb:'Team formed',on:teamSize()>=2},
+    {lb:'Team profile complete',on:!!(TEAM.teamName&&(TEAM.ideaName||TEAM.wantsLeader))},
+    {lb:'Problem selected',on:!!TEAM.psId},
+    {lb:'Prototype shipped',on:SUBS.some(s=>s.github||s.live)},
+    {lb:'Reviewed by core team',on:SUBS.some(s=>s.status==='approved'||s.feedback)},
+    {lb:'Portal submission',on:c.approved>=6}
+  ];
+  const on=items.filter(i=>i.on).length;
+  return{items,pct:Math.round(on/items.length*100)};
+}
+
+function nextMove(){
+  const c=counts();
+  if(!TEAM.psId) return{eb:'Set up',ico:'🎯',t:'Choose your problem statement',d:'Enter your PS ID and its live submission count so we can gauge your odds.',target:'setup',focus:'psId',label:'Continue'};
+  if(!TEAM.wantsLeader&&!TEAM.ideaName) return{eb:'Set up',ico:'💡',t:'Lock your primary idea',d:'Pick the idea your team will build from the arsenal.',target:'setup',focus:'idea',label:'Continue'};
+  if(SUBS.some(s=>s.status==='changes')) return{eb:'Action needed',ico:'📝',t:'Review feedback & resubmit',d:'The core team requested changes on a target. Address it and resubmit.',target:'tasks',label:'Continue'};
+  if(SUBS.length===0) return{eb:'Build',ico:'🚀',t:'Submit your first target',d:'Ship the hero feature and submit Week-by-week progress for review.',target:'tasks',label:'Continue'};
+  if(c.approved<c.total) return{eb:'Keep moving',ico:'📈',t:'Submit your next target',d:c.approved+' of '+c.total+' targets approved. Push the next milestone.',target:'tasks',label:'Continue'};
+  return{eb:'On track',ico:'🏆',t:"You're all caught up",d:'Every target is approved. Polish the demo and prep for finals.',target:'chat',label:'Open chat'};
+}
+
+function activity(){
+  const acts=[];
+  SUBS.forEach(s=>{const m=MILES.find(x=>x.id===s.milestoneId);const nm=m?('Week '+m.week+' · '+m.title):'a target';
+    if(s.reviewedAt&&(s.status==='approved'||s.status==='changes'))acts.push({ico:s.status==='approved'?'✅':'📝',t:'<b>Core team</b> '+(s.status==='approved'?'approved':'requested changes on')+' '+esc(nm),at:s.reviewedAt});
+    if(s.updatedAt)acts.push({ico:'📤',t:esc(s.by||'A teammate')+' submitted '+esc(nm),at:s.updatedAt});});
+  (TEAM.directives||[]).forEach(d=>acts.push({ico:'🎯',t:'<b>Core team</b> set a target: '+esc(d.text),at:d.at}));
+  return acts.sort((a,b)=>b.at-a.at).slice(0,6);
+}
+
+function upcoming(){
+  const list=[];
+  MILES.forEach(m=>{const s=subFor(m.id);if(!s||s.status==='changes')list.push({wk:m.week,t:m.title,ask:m.asks});});
+  return list.slice(0,4);
+}
+
+/* ---------- chat (unchanged API) ---------- */
 async function loadChat(){
   try{const cs=await api('/api/my/comments');const box=document.getElementById('msgs');if(!box)return;
     const near=box.scrollHeight-box.scrollTop-box.clientHeight<60;
     box.innerHTML=cs.length?cs.map(c=>{
       const mine=c.authorId===ME.id;const cls=mine?'mine':(c.role==='core'?'core':'other');
-      const roleb=c.role==='core'?' <span class="badge b-mid" style="font-size:9px;padding:1px 5px">core team</span>':c.role==='captain'?' <span class="badge b-proven" style="font-size:9px;padding:1px 5px">captain</span>':'';
+      const roleb=c.role==='core'?' <span class="cmini core">core</span>':c.role==='captain'?' <span class="cmini cap">captain</span>':'';
       return '<div class="msg '+cls+'"><div class="a">'+esc(c.authorName)+(mine?'':roleb)+'</div><div>'+esc(c.text)+'</div><div class="t">'+new Date(c.at).toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})+'</div></div>';
-    }).join(''):'<div class="faint" style="margin:auto;text-align:center;font-size:13px">No messages yet. Say hi to your team 👋</div>';
+    }).join(''):'<div class="empty" style="margin:auto">No messages yet. Say hi to your team 👋</div>';
     if(near)box.scrollTop=box.scrollHeight;
   }catch(e){}
 }
 
+/* ---------- header widgets ---------- */
+function setHeader(){
+  document.getElementById('roleTag').textContent=ME.isCaptain?'Captain':'Member';
+  document.getElementById('profNm').textContent=ME.name;
+  document.getElementById('profAv').textContent=initials(ME.name);
+  let n=0;if(CONN&&CONN.conversations&&CONN.conversations[0])n+=CONN.conversations[0].unread||0;
+  n+=SUBS.filter(s=>s.status==='changes').length;
+  const b=document.getElementById('bellCt');
+  if(n>0){b.textContent=n>9?'9+':n;b.classList.remove('cc-hidden');}else{b.classList.add('cc-hidden');}
+}
+function closeDrops(){document.getElementById('dropRoot').innerHTML='';}
+document.getElementById('menuBtn').addEventListener('click',e=>{e.stopPropagation();
+  const open=document.getElementById('dropRoot').innerHTML;closeDrops();if(open)return;
+  document.getElementById('dropRoot').innerHTML='<div class="ccdrop"><a href="#top">Dashboard</a><a href="#team">Team</a><a href="#tasks">Tasks</a><a href="#chat">Chat</a><a href="#resources">Resources</a><div class="sep"></div><a href="/connect.html">💬 Open SIH Connect</a><button id="mLogout">Log out</button></div>';
+  document.getElementById('mLogout').addEventListener('click',doLogout);});
+document.getElementById('profBtn').addEventListener('click',e=>{e.stopPropagation();
+  const open=document.getElementById('dropRoot').innerHTML;closeDrops();if(open)return;
+  document.getElementById('dropRoot').innerHTML='<div class="ccdrop"><div style="padding:8px 12px;font-size:12px;color:var(--sub)">Signed in as<br><b style="color:var(--ink);font-size:13.5px">'+esc(ME.name)+'</b></div><div class="sep"></div><a href="/connect.html">💬 SIH Connect</a><a href="#resources">Resources</a><button id="pLogout">Log out</button></div>';
+  document.getElementById('pLogout').addEventListener('click',doLogout);});
+document.getElementById('bellBtn').addEventListener('click',e=>{e.stopPropagation();location.hash='#chat';});
+document.addEventListener('click',closeDrops);
+async function doLogout(){await api('/api/logout',{method:'POST'});location.href='/';}
+
+/* ---------- main render ---------- */
 function render(){
   const app=document.getElementById('app');
-  document.getElementById('roleTag').textContent=ME.isCaptain?'Captain':'Member';
-  document.getElementById('who').innerHTML='<b>'+esc(ME.name)+'</b> · '+esc(TEAM.teamName)+' · '+esc(TEAM.teamCode);
-  const o=odds();
-  // avatars: captain + member accounts
-  const memberNames=[TEAM.captainName].concat(TEAM.memberAccounts.filter(m=>m.name!==TEAM.captainName).map(m=>m.name));
-  let avs='';for(let i=0;i<6;i++){avs+=memberNames[i]?'<span class="av" title="'+esc(memberNames[i])+'">'+initials(memberNames[i])+'</span>':'<span class="av empty">+</span>';}
+  setHeader();
+  const c=counts();const nm=nextMove();const rd=readiness();const o=odds();const g=new Date().getHours();
+  const hi=g<12?'Good morning':g<17?'Good afternoon':'Good evening';
+  const idea=IDEAS.find(i=>i.id===TEAM.ideaId);
+  const problemName=TEAM.wantsLeader?(TEAM.captainName+"'s idea"):(TEAM.ideaName||'Not chosen yet');
+  const domain=idea?idea.theme:(TEAM.wantsLeader?'Own idea':'—');
 
-  const invite = ME.isCaptain ? '<div class="card pad invite rise"><p class="sec-title">Invite your 5 team members</p>'+
-      '<p class="muted" style="font-size:13px;margin:0 0 10px">Share these with your teammates. They open the site → <b>Join team</b> tab → enter these to join and chat.</p>'+
-      '<div class="pillbtn" style="align-items:center;margin-bottom:8px"><span class="cred">Team ID: '+esc(TEAM.teamCode)+'</span><span class="cred">Password: '+esc(TEAM.teamPassword||'')+'</span><button class="btn sm ghost" id="copyInvite">Copy invite</button></div>'+
-      '<div class="avatars">'+avs+'</div></div>' :
-      '<div class="card pad rise"><p class="sec-title">Your team</p><div class="avatars">'+avs+'</div><p class="faint" style="font-size:12px;margin-top:8px">You joined as a member. Everyone shares the same workspace below.</p></div>';
+  // avatars
+  const capName=TEAM.captainName;
+  const others=(TEAM.memberAccounts||[]).filter(m=>m.name!==capName).map(m=>m.name);
+  let avs='<span class="av cap" title="'+esc(capName)+' (captain)">'+initials(capName)+'</span>';
+  for(let i=0;i<5;i++){avs+=others[i]?'<span class="av" title="'+esc(others[i])+'">'+initials(others[i])+'</span>':'<span class="av empty">+</span>';}
 
-  let approved=0;
-  const timeline=MILES.map(m=>{
-    const sub=SUBS.find(s=>s.milestoneId===m.id)||null;const st=sub?sub.status:'todo';if(st==='approved')approved++;
-    const badge=st==='approved'?'<span class="badge b-approved">approved</span>':st==='submitted'?'<span class="badge b-submitted">under review</span>':st==='changes'?'<span class="badge b-changes">changes requested</span>':'<span class="badge b-todo">to do</span>';
-    let links='';if(sub){const L=[['github','Repo'],['deck','Deck'],['demo','Demo'],['live','Live']].filter(x=>sub[x[0]]);if(L.length)links='<div class="links">'+L.map(x=>'<a href="'+esc(sub[x[0]])+'" target="_blank" rel="noopener">'+x[1]+' ↗</a>').join('')+'</div>';if(sub.notes)links+='<div class="muted" style="font-size:13px;margin-top:6px">'+esc(sub.notes)+(sub.by?' <span class="faint">— '+esc(sub.by)+'</span>':'')+'</div>';}
-    const fb=sub&&sub.feedback?'<div class="fb"><b>Core team:</b> '+esc(sub.feedback)+'</div>':'';
-    return '<div class="ms '+st+'"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="wk">Week '+m.week+'</span><h4 style="flex:1">'+esc(m.title)+'</h4>'+badge+'</div>'+
-      '<div class="muted" style="font-size:13px">'+esc(m.detail)+'</div><div class="faint" style="font-size:12px;margin-top:4px">Expected: '+esc(m.asks)+'</div>'+links+fb+
-      '<div style="margin-top:10px"><button class="btn sm" data-open="'+m.id+'">'+(sub?'Update':'Submit work')+'</button></div>'+
-      '<form class="hidden" id="f-'+m.id+'" style="margin-top:12px">'+
-        '<div class="row2"><div class="field"><label class="f">GitHub</label><input name="github" value="'+esc(sub?sub.github:'')+'" placeholder="repo link"/></div><div class="field"><label class="f">Deck</label><input name="deck" value="'+esc(sub?sub.deck:'')+'" placeholder="slides link"/></div></div>'+
-        '<div class="row2"><div class="field"><label class="f">Demo video</label><input name="demo" value="'+esc(sub?sub.demo:'')+'" placeholder="YouTube/Loom"/></div><div class="field"><label class="f">Live URL</label><input name="live" value="'+esc(sub?sub.live:'')+'" placeholder="deployed"/></div></div>'+
-        '<div class="field"><label class="f">Notes</label><textarea name="notes" placeholder="what you did / need help on">'+esc(sub?sub.notes:'')+'</textarea></div>'+
-        '<button class="btn accent sm" type="submit">Submit for review</button> <span class="err" style="display:inline"></span></form></div>';
-  }).join('');
+  // journey steps
+  const jhtml=journey().map((s,i)=>'<div class="step '+(s.done?'done':'')+(s.cur?' cur':'')+'">'+(i>0?'<div class="bar"></div>':'')+'<div class="dot">'+(s.done?'✓':(s.cur?'●':(i+1)))+'</div><div class="lb">'+s.lb+'</div></div>').join('');
 
-  const dirs=(TEAM.directives||[]);
-  const dirCard=dirs.length?'<div class="card pad rise"><p class="sec-title">Targets from the core team</p><div class="dirs">'+dirs.map(d=>'<div class="dir'+(d.done?' done':'')+'"><div><div>'+esc(d.text)+'</div><div class="faint mono" style="font-size:11px;margin-top:4px">— '+esc(d.by)+'</div></div>'+(d.done?'<span class="badge b-approved">done</span>':'<button class="btn sm" data-ack="'+d.id+'">Mark done</button>')+'</div>').join('')+'</div></div>':'';
+  // tasks grouped
+  const groups={todo:[],prog:[],done:[]};
+  MILES.forEach(m=>{const s=subFor(m.id);const st=s?s.status:'todo';
+    const key=st==='approved'?'done':(st==='submitted'?'prog':(st==='changes'?'prog':'todo'));
+    groups[key].push({m,s,st});});
+  function taskCard(x){const {m,s,st}=x;
+    const pill=st==='approved'?'<span class="pill p-appr">approved</span>':st==='submitted'?'<span class="pill p-sub">under review</span>':st==='changes'?'<span class="pill p-chg">changes</span>':'<span class="pill p-todo">to do</span>';
+    let links='';if(s){const L=[['github','Repo'],['deck','Deck'],['demo','Demo'],['live','Live']].filter(k=>s[k[0]]);if(L.length)links='<div class="links">'+L.map(k=>'<a href="'+esc(s[k[0]])+'" target="_blank" rel="noopener">'+k[1]+' ↗</a>').join('')+'</div>';}
+    const fb=s&&s.feedback?'<div class="fb"><b>Core team:</b> '+esc(s.feedback)+'</div>':'';
+    return '<div class="task"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="wk">Week '+m.week+'</span>'+pill+'</div>'+
+      '<h4>'+esc(m.title)+'</h4><div class="dt">'+esc(m.detail)+'</div><div class="ask">Expected: '+esc(m.asks)+'</div>'+links+fb+
+      '<div style="margin-top:10px"><button class="b sm" data-open="'+m.id+'">'+(s?'Update':'Submit work')+'</button></div>'+
+      '<form class="cc-hidden" id="f-'+m.id+'" style="margin-top:12px">'+
+        '<div class="row2"><div class="fld"><label>GitHub</label><input name="github" value="'+esc(s?s.github:'')+'" placeholder="repo link"/></div><div class="fld"><label>Deck</label><input name="deck" value="'+esc(s?s.deck:'')+'" placeholder="slides link"/></div></div>'+
+        '<div class="row2" style="margin-top:10px"><div class="fld"><label>Demo video</label><input name="demo" value="'+esc(s?s.demo:'')+'" placeholder="YouTube/Loom"/></div><div class="fld"><label>Live URL</label><input name="live" value="'+esc(s?s.live:'')+'" placeholder="deployed"/></div></div>'+
+        '<div class="fld" style="margin-top:10px"><label>Notes</label><textarea name="notes" placeholder="what you did / need help on">'+esc(s?s.notes:'')+'</textarea></div>'+
+        '<button class="b pri sm" type="submit" style="margin-top:10px">Submit for review</button> <span class="err" style="display:inline"></span></form></div>';
+  }
+  function col(key,label,ico){const arr=groups[key];return '<div class="tcol '+key+'"><div class="hd">'+ico+' '+label+' <span class="cnt">'+arr.length+'</span></div>'+(arr.length?arr.map(taskCard).join(''):'<div class="empty">—</div>')+'</div>';}
 
+  // idea setup block (unchanged IDs)
   const ideaSetup = TEAM.wantsLeader
-    ? '<div class="card pad" style="background:var(--surface-2)"><p class="sec-title">Your idea (owned by captain)</p><div style="font-weight:700">'+esc(TEAM.captainName)+'’s idea</div><div class="muted" style="font-size:13px;margin-top:4px">'+esc(TEAM.ownIdeaText||'')+'</div></div>'
-    : '<div class="row2"><div class="field"><label class="f">Primary idea</label><select id="idea"></select></div><div class="field"><label class="f">Backup idea</label><select id="backup"></select></div></div>';
+    ? '<div class="fld" style="grid-column:1/-1"><label>Your idea (owned by captain)</label><div class="cred" style="display:block;padding:10px 12px">'+esc(TEAM.ownIdeaText||TEAM.captainName+"'s idea")+'</div></div>'
+    : '<div class="fld"><label>Primary idea</label><select id="idea"></select></div><div class="fld"><label>Backup idea</label><select id="backup"></select></div>';
+
+  // announcements = directives (real)
+  const dirs=(TEAM.directives||[]);
+  const annHtml=dirs.length?dirs.map(d=>'<div class="fi'+(d.done?'':' unread')+'"><div class="fd">🎯</div><div class="ft">'+esc(d.text)+'<div class="fm">— '+esc(d.by)+' · '+timeAgo(d.at)+(d.done?' · done':'')+'</div></div>'+(d.done?'':'<button class="b sm" data-ack="'+d.id+'">Done</button>')+'</div>').join(''):'<div class="empty">No targets from the core team yet.</div>';
+
+  const actHtml=activity().length?activity().map(a=>'<div class="fi"><div class="fd">'+a.ico+'</div><div class="ft">'+a.t+'<div class="fm">'+timeAgo(a.at)+'</div></div></div>').join(''):'<div class="empty">Activity will appear as your team makes progress.</div>';
+  const upHtml=upcoming().length?upcoming().map(u=>'<div class="fi"><div class="fd">📅</div><div class="ft"><b>Week '+u.wk+'</b> · '+esc(u.t)+'<div class="fm">Expected: '+esc(u.ask)+'</div></div></div>').join(''):'<div class="empty">All targets complete 🎉</div>';
+
+  const unread=CONN&&CONN.conversations&&CONN.conversations[0]?CONN.conversations[0].unread:0;
+  const lastMsg=CONN&&CONN.conversations&&CONN.conversations[0]?CONN.conversations[0].lastText:'';
+
+  // invite (captain only) — keeps team password display + copy
+  const inviteCard = ME.isCaptain ? '<div class="cc col12" style="border-color:var(--blue);background:linear-gradient(120deg,var(--blue-soft),var(--card) 60%)"><h3 class="t"><span class="ico">🎟️</span> Invite your 5 team members</h3>'+
+      '<p style="font-size:13px;color:var(--sub);margin:0 0 10px">Share these with your teammates. They open the site → <b>Join team</b> tab → enter these to join and chat.</p>'+
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="cred">Team ID: '+esc(TEAM.teamCode)+'</span><span class="cred">Password: '+esc(TEAM.teamPassword||'')+'</span><button class="b sm" id="copyInvite">Copy invite</button></div></div>' : '';
 
   app.innerHTML=
-    invite+
-    '<div class="grid rise" style="grid-template-columns:1.4fr .9fr;gap:16px">'+
-      '<div class="card pad"><p class="sec-title">Mission setup <span class="faint" style="text-transform:none;letter-spacing:0">(anyone on the team can edit)</span></p>'+
-        '<div class="field"><label class="f">Team name</label><input id="teamName" value="'+esc(TEAM.teamName||'')+'"/></div>'+ideaSetup+
-        '<div class="row2"><div class="field"><label class="f">Problem Statement ID</label><input id="psId" value="'+esc(TEAM.psId||'')+'" placeholder="SIH26XXXX"/></div>'+
-        '<div class="field"><label class="f">Live submissions on that PS</label><input id="psCount" type="number" min="0" value="'+(TEAM.psCount==null?'':TEAM.psCount)+'" placeholder="from portal"/></div></div>'+
-        '<div class="row2"><div class="field"><label class="f">Members (up to 6)</label><input id="members" value="'+esc((TEAM.members||[]).join(', '))+'"/></div>'+
-        '<div class="field" style="max-width:150px"><label class="f">Female (≥1)</label><input id="fcount" type="number" min="0" max="6" value="'+(TEAM.femaleCount||0)+'"/></div></div>'+
-        '<button class="btn accent" id="saveTeam">Save setup</button><div class="err" id="tErr"></div></div>'+
-      '<div class="card pad" style="display:flex;flex-direction:column"><p class="sec-title">Selection odds radar</p><p class="muted" style="font-size:13px;margin:0 0 8px">Only 4–5 teams per PS reach the finale. Fewer rivals = higher odds.</p>'+
-        '<div style="text-align:center;margin:auto 0"><div class="mono" id="oBig" style="font-size:44px;font-weight:800;color:'+o.c+'">'+o.big+'</div>'+
-        '<div class="faint mono" style="font-size:11px;letter-spacing:.1em;text-transform:uppercase">chance to reach finale</div>'+
-        '<div class="prog" style="margin-top:12px;height:10px"><i id="oBar" style="width:'+o.w+'%"></i></div><div id="oV" style="font-size:13px;font-weight:700;margin-top:10px;color:'+o.c+'">'+o.t+'</div></div></div>'+
-    '</div>'+dirCard+
-    '<div class="card pad rise"><p class="sec-title">Team chat</p><p class="muted" style="font-size:13px;margin:0 0 10px">Talk with your teammates and the core team here.</p>'+
-      '<div class="chatbox"><div class="msgs" id="msgs"></div><form class="chatform" id="chatForm"><input id="chatInput" placeholder="Message your team…" autocomplete="off"/><button class="btn accent" type="submit">Send</button></form></div></div>'+
-    '<div class="card pad rise"><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><h2 style="font-size:19px">The 8-Week Targets</h2><span class="spacer"></span><span class="faint mono" style="font-size:12px">'+approved+' / '+MILES.length+' approved</span><div class="prog" style="width:140px"><i style="width:'+(MILES.length?approved/MILES.length*100:0)+'%"></i></div></div>'+
-      '<p class="muted" style="font-size:13px;margin:6px 0 4px">Submit work per target. Green = approved, red = fix &amp; resubmit.</p>'+timeline+'</div>';
+    // OVERVIEW
+    '<div class="cc col12 ov"><div><h2>'+hi+', '+esc(ME.name.split(' ')[0])+'.</h2><div class="sub">Stage: <b style="color:#fff">'+currentStageName()+'</b> · '+esc(TEAM.teamName)+'</div></div>'+
+      '<div class="ovstats"><div class="ovs"><div class="k">Team</div><div class="v">'+esc(TEAM.teamName)+'</div></div>'+
+        '<div class="ovs"><div class="k">Team ID</div><div class="v">'+esc(TEAM.teamCode)+'</div></div>'+
+        '<div class="ovs ovprog"><div class="k">Overall progress</div><div class="v">'+c.approved+'/'+c.total+' targets</div><div class="ovbar"><i style="width:'+c.pct+'%"></i></div></div></div></div>'+
 
+    // NEXT MOVE
+    '<div class="cc col8 nm"><div class="ring">'+nm.ico+'</div><div><div class="eb">Your next move</div><h2>'+nm.t+'</h2><p>'+nm.d+'</p></div>'+
+      '<div class="go"><button class="b pri" id="nmBtn">'+nm.label+' →</button></div></div>'+
+
+    // ODDS radar (existing functionality)
+    '<div class="cc col4"><h3 class="t"><span class="ico">📡</span> Selection odds</h3><div class="odds"><div class="big" id="oBig" style="color:'+o.c+'">'+o.big+'</div><div class="lb">chance to reach finale</div><div class="prog"><i id="oBar" style="width:'+o.w+'%"></i></div><div class="pv" id="oV" style="color:'+o.c+'">'+o.t+'</div></div></div>'+
+
+    // JOURNEY
+    '<div class="cc col8"><h3 class="t"><span class="ico">🧭</span> Your SIH journey</h3><div class="jour">'+jhtml+'</div></div>'+
+
+    // READINESS
+    '<div class="cc col4"><h3 class="t"><span class="ico">✅</span> Team readiness</h3><div class="rd-top"><span class="pct">'+rd.pct+'%</span><span class="lb">ready</span></div><div class="miniprog"><i style="width:'+rd.pct+'%"></i></div>'+
+      '<div class="chk">'+rd.items.map(it=>'<div class="it '+(it.on?'on':'off')+'"><span class="bx">✓</span>'+it.lb+'</div>').join('')+'</div></div>'+
+
+    // TASK CENTER
+    '<div class="cc col8" id="tasks"><h3 class="t"><span class="ico">🗂️</span> Task center — 8-week targets <span style="margin-left:auto;font-weight:700;color:var(--sub);text-transform:none;letter-spacing:0;font-size:12px">'+c.approved+' / '+c.total+' approved</span></h3><div class="tcols">'+
+      col('todo','To do','📋')+col('prog','In progress','⏳')+col('done','Completed','🏁')+'</div></div>'+
+
+    // TEAM HUB
+    '<div class="cc col4" id="team"><h3 class="t"><span class="ico">👥</span> Team hub</h3><div class="avatars">'+avs+'</div>'+
+      '<div class="kv"><span class="k">Team name</span><span class="v">'+esc(TEAM.teamName)+'</span></div>'+
+      '<div class="kv"><span class="k">Team ID</span><span class="v">'+esc(TEAM.teamCode)+'</span></div>'+
+      '<div class="kv"><span class="k">Captain</span><span class="v">'+esc(capName)+'</span></div>'+
+      '<div class="kv"><span class="k">Members</span><span class="v">'+teamSize()+' / 6</span></div>'+
+      '<div class="kv"><span class="k">Domain</span><span class="v">'+esc(domain)+'</span></div>'+
+      (ME.skills?'<div class="kv"><span class="k">Your skills</span><span class="v" style="max-width:60%">'+esc(ME.skills)+'</span></div>':'')+'</div>'+
+
+    // CHALLENGE
+    '<div class="cc col4"><h3 class="t"><span class="ico">🎯</span> Your challenge</h3>'+
+      '<div style="font-size:16px;font-weight:800;color:var(--ink);margin-bottom:2px">'+esc(problemName)+'</div>'+
+      '<div class="tags"><span class="tag">'+esc(domain)+'</span>'+(TEAM.psId?'<span class="tag">PS '+esc(TEAM.psId)+'</span>':'')+'<span class="tag">'+(TEAM.psId?'Locked in':'Not chosen')+'</span></div>'+
+      (idea&&idea.edge?'<p style="font-size:12.5px;color:var(--sub);margin:10px 0 0;line-height:1.5">'+esc(idea.edge)+'</p>':'')+
+      '<div style="margin-top:12px"><a class="b sm" href="#setup">Edit in setup →</a></div></div>'+
+
+    // MISSION SETUP (existing engine — IDs preserved)
+    '<div class="cc col8" id="setup"><h3 class="t"><span class="ico">⚙️</span> Mission setup <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--mut)">(anyone on the team can edit)</span></h3>'+
+      '<div class="fgrid"><div class="fld"><label>Team name</label><input id="teamName" value="'+esc(TEAM.teamName||'')+'"/></div>'+ideaSetup+
+        '<div class="fld"><label>Problem Statement ID</label><input id="psId" value="'+esc(TEAM.psId||'')+'" placeholder="SIH26XXXX"/></div>'+
+        '<div class="fld"><label>Live submissions on that PS</label><input id="psCount" type="number" min="0" value="'+(TEAM.psCount==null?'':TEAM.psCount)+'" placeholder="from portal"/></div>'+
+        '<div class="fld"><label>Members (up to 6)</label><input id="members" value="'+esc((TEAM.members||[]).join(', '))+'"/></div>'+
+        '<div class="fld"><label>Female members (≥1)</label><input id="fcount" type="number" min="0" max="6" value="'+(TEAM.femaleCount||0)+'"/></div></div>'+
+      '<button class="b pri" id="saveTeam" style="margin-top:14px">Save setup</button><div class="err" id="tErr"></div></div>'+
+
+    // CHAT
+    '<div class="cc col4" id="chat"><h3 class="t"><span class="ico">💬</span> Team chat'+(unread?' <span style="background:var(--blue);color:#fff;border-radius:99px;padding:1px 7px;font-size:10px;margin-left:2px">'+unread+'</span>':'')+' <a class="lnk" href="/connect.html">Open →</a></h3>'+
+      '<div class="chatbox"><div class="msgs" id="msgs"></div><form class="chatform" id="chatForm"><input id="chatInput" placeholder="Message your team…" autocomplete="off"/><button class="b pri" type="submit">Send</button></form></div></div>'+
+
+    // ANNOUNCEMENTS
+    '<div class="cc col6"><h3 class="t"><span class="ico">📢</span> Announcements &amp; targets</h3><div class="feed">'+annHtml+'</div></div>'+
+
+    // ACTIVITY
+    '<div class="cc col6"><h3 class="t"><span class="ico">⚡</span> Recent activity</h3><div class="feed">'+actHtml+'</div></div>'+
+
+    // UPCOMING
+    '<div class="cc col6"><h3 class="t"><span class="ico">📅</span> Upcoming targets</h3><div class="feed">'+upHtml+'</div></div>'+
+
+    // QUICK ACTIONS
+    '<div class="cc col6"><h3 class="t"><span class="ico">⚡</span> Quick actions</h3><div class="qa">'+
+      '<a href="/connect.html"><span class="qi">💬</span><span class="ql">Open chat</span></a>'+
+      '<a href="#team"><span class="qi">👥</span><span class="ql">View team</span></a>'+
+      '<a href="#tasks"><span class="qi">🗂️</span><span class="ql">View tasks</span></a>'+
+      '<a href="#setup"><span class="qi">🎯</span><span class="ql">Problem</span></a>'+
+      '<a href="#resources"><span class="qi">📚</span><span class="ql">Resources</span></a>'+
+      '<a href="/#faq"><span class="qi">🛟</span><span class="ql">Support</span></a>'+'</div></div>'+
+
+    inviteCard+
+
+    // RESOURCES
+    '<div class="cc col8" id="resources"><h3 class="t"><span class="ico">📚</span> Resources</h3><div class="qa" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">'+
+      '<a href="https://sih.gov.in" target="_blank" rel="noopener"><span class="qi">🏛️</span><span class="ql">SIH Portal</span></a>'+
+      '<a href="https://sih.gov.in/sih2024PS" target="_blank" rel="noopener"><span class="qi">📄</span><span class="ql">Problem Statements</span></a>'+
+      '<a href="/#journey"><span class="qi">🗺️</span><span class="ql">Campaign Guide</span></a>'+
+      '<a href="/#faq"><span class="qi">❓</span><span class="ql">FAQ</span></a>'+
+      '<a href="#tasks"><span class="qi">📊</span><span class="ql">Submission Guide</span></a>'+
+      '<a href="/connect.html"><span class="qi">💬</span><span class="ql">Ask Core Team</span></a>'+'</div></div>'+
+
+    // SUPPORT
+    '<div class="cc col4"><h3 class="t"><span class="ico">🛟</span> Need help?</h3><div class="feed">'+
+      '<a class="fi" style="text-decoration:none" href="/#faq"><div class="fd">❓</div><div class="ft" style="color:var(--ink)">FAQ<div class="fm">Common questions</div></div></a>'+
+      '<a class="fi" style="text-decoration:none" href="/connect.html"><div class="fd">💬</div><div class="ft" style="color:var(--ink)">Contact core team<div class="fm">Chat with mentors</div></div></a>'+
+      '<a class="fi" style="text-decoration:none" href="#chat"><div class="fd">🐞</div><div class="ft" style="color:var(--ink)">Report an issue<div class="fm">Message us here</div></div></a>'+
+      '<a class="fi" style="text-decoration:none" href="/#journey"><div class="fd">📖</div><div class="ft" style="color:var(--ink)">Platform guide<div class="fm">How it works</div></div></a>'+'</div></div>';
+
+  // ---- bind (all existing handlers preserved) ----
   if(!TEAM.wantsLeader){fillIdeas(document.getElementById('idea'),TEAM.ideaId);fillIdeas(document.getElementById('backup'),TEAM.backupIdeaId);}
+  document.getElementById('nmBtn').addEventListener('click',()=>{const el=document.getElementById(nm.target);if(el){el.scrollIntoView({behavior:'smooth',block:'start'});}if(nm.focus){const f=document.getElementById(nm.focus);if(f)setTimeout(()=>f.focus(),350);}});
   const copyBtn=document.getElementById('copyInvite');if(copyBtn)copyBtn.addEventListener('click',()=>{const txt='Join our SIH team on '+location.origin+'/?join\nTeam ID: '+TEAM.teamCode+'\nPassword: '+(TEAM.teamPassword||'');navigator.clipboard&&navigator.clipboard.writeText(txt);toast('Invite copied');});
   document.getElementById('psCount').addEventListener('input',e=>{TEAM.psCount=e.target.value===''?null:Number(e.target.value);const o=odds();oBig.textContent=o.big;oBig.style.color=o.c;oBar.style.width=o.w+'%';oV.textContent=o.t;oV.style.color=o.c;});
   document.getElementById('saveTeam').addEventListener('click',async()=>{
     const err=document.getElementById('tErr');err.textContent='';
     const body={teamName:teamName.value,psId:psId.value,psCount:psCount.value,members:members.value.split(',').map(s=>s.trim()).filter(Boolean),femaleCount:fcount.value};
     if(!TEAM.wantsLeader){body.ideaId=document.getElementById('idea').value;body.backupIdeaId=document.getElementById('backup').value;}
-    try{const d=await api('/api/my/team',{method:'PUT',body:JSON.stringify(body)});TEAM=d.team;toast('Saved ✓');}catch(ex){err.textContent=ex.message;}
+    try{const d=await api('/api/my/team',{method:'PUT',body:JSON.stringify(body)});TEAM=d.team;toast('Saved ✓');render();}catch(ex){err.textContent=ex.message;}
   });
-  document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>document.getElementById('f-'+b.dataset.open).classList.toggle('hidden')));
+  document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>document.getElementById('f-'+b.dataset.open).classList.toggle('cc-hidden')));
   MILES.forEach(m=>{const f=document.getElementById('f-'+m.id);if(!f)return;f.addEventListener('submit',async e=>{e.preventDefault();const er=f.querySelector('.err');er.textContent='';const fd=new FormData(f);try{const d=await api('/api/my/submission',{method:'POST',body:JSON.stringify({milestoneId:m.id,github:fd.get('github'),deck:fd.get('deck'),demo:fd.get('demo'),live:fd.get('live'),notes:fd.get('notes')})});SUBS=SUBS.filter(s=>s.milestoneId!==m.id);SUBS.push(d.submission);render();toast('Submitted ✓');}catch(ex){er.textContent=ex.message;}});});
   document.querySelectorAll('[data-ack]').forEach(b=>b.addEventListener('click',async()=>{await api('/api/my/directive/'+b.dataset.ack+'/ack',{method:'POST'});const dd=TEAM.directives.find(x=>x.id==b.dataset.ack);if(dd)dd.done=true;render();}));
   document.getElementById('chatForm').addEventListener('submit',async e=>{e.preventDefault();const inp=document.getElementById('chatInput');const t=inp.value.trim();if(!t)return;inp.value='';try{await api('/api/my/comment',{method:'POST',body:JSON.stringify({text:t})});await loadChat();}catch(ex){toast(ex.message);}});
@@ -157,9 +544,9 @@ async function boot(){
   if(ME.isCaptain && !ME.signedAgreement){IDEAS=await api('/api/ideas');MILES=await api('/api/milestones');showAgreement();return;}
   if(!TEAM){location.href='/status.html';return;}
   IDEAS=await api('/api/ideas');MILES=await api('/api/milestones');SUBS=await api('/api/my/submissions');
+  CONN=await api('/api/connect/summary').catch(()=>null);
   render();
 }
-document.getElementById('logout').addEventListener('click',async()=>{await api('/api/logout',{method:'POST'});location.href='/';});
 boot();
 </script>
 </body>

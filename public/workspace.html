@@ -9,10 +9,10 @@
   /* ============ SIH 2026 · Student Command Center ============
      Skin only — reuses app.css tokens. No logic/API/field changes. */
   :root{
-    --navy:#0B1220; --blue:#2563EB; --blue-d:#1D4ED8; --blue-soft:#EAF1FF;
-    --saffron:#D97706; --saffron-soft:#FFF4E5; --ok:#16A34A; --ok-soft:#EAF8EF;
-    --ink:#101828; --sub:#667085; --mut:#98A2B3; --bd:#E4E7EC; --bd2:#EEF0F3;
-    --wbg:#F7F7F5; --card:#FFFFFF;
+    --navy:#0F172A; --blue:#2563EB; --blue-d:#1D4ED8; --blue-soft:#EAF1FF;
+    --saffron:#EA580C; --saffron-soft:#FFF4E5; --ok:#16A34A; --ok-soft:#EAF8EF;
+    --ink:#111827; --sub:#667085; --mut:#98A2B3; --bd:#E5E7EB; --bd2:#EEF0F3;
+    --wbg:#F8F7F4; --bg-2:#F3F4F6; --card:#FFFFFF;
   }
   body{background:var(--wbg)}
   .cc-hidden{display:none!important}
@@ -20,8 +20,10 @@
   /* ---- header ---- */
   .cchead{position:sticky;top:0;z-index:40;background:rgba(247,247,245,.85);
     backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--bd)}
-  .cchead .in{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:14px;
-    padding:12px clamp(16px,4vw,28px)}
+  .cchead .in{max-width:1440px;margin:0 auto;display:flex;align-items:center;gap:14px;min-height:64px;
+    padding:10px 24px}
+  @media(max-width:900px){.cchead .in{padding:10px 20px}}
+  @media(max-width:560px){.cchead .in{padding:10px 16px}}
   .ccbrand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em;color:var(--ink);font-size:16px}
   .ccbrand .mk{width:22px;height:22px;border-radius:7px;background:linear-gradient(135deg,var(--blue),var(--saffron));display:inline-block}
   .ccbrand small{font-weight:600;font-size:11px;color:var(--sub);letter-spacing:.02em}
@@ -46,17 +48,27 @@
   .ccdrop a:hover,.ccdrop button:hover{background:var(--blue-soft);color:var(--blue-d)}
   .ccdrop .sep{height:1px;background:var(--bd2);margin:4px 6px}
 
-  /* ---- shell / grid ---- */
-  .ccwrap{max-width:1240px;margin:0 auto;padding:clamp(18px,3vw,28px) clamp(16px,4vw,28px) 60px}
-  .ccgrid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;align-items:start}
-  .col12{grid-column:span 12}.col8{grid-column:span 8}.col7{grid-column:span 7}
-  .col6{grid-column:span 6}.col5{grid-column:span 5}.col4{grid-column:span 4}
-  @media(max-width:1080px){.col8,.col7{grid-column:span 12}.col5,.col4{grid-column:span 6}.col6{grid-column:span 6}}
-  @media(max-width:720px){.col8,.col7,.col6,.col5,.col4{grid-column:span 12}}
+  /* ---- shell / grid (unified 1440 container, 65/35 main split) ---- */
+  .ccwrap{max-width:1440px;margin:0 auto;padding:24px 24px 64px}
+  #app{display:block}
+  .ccstack{display:flex;flex-direction:column;gap:20px}
+  .maincols{display:grid;grid-template-columns:1.86fr 1fr;gap:24px;align-items:start}
+  .mcleft,.mcright{display:flex;flex-direction:column;gap:20px;min-width:0}
+  .reshelp{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+  @media(max-width:1024px){.maincols{grid-template-columns:1fr}}
+  @media(max-width:768px){.reshelp{grid-template-columns:1fr}}
+  @media(max-width:900px){.ccwrap{padding:20px 20px 56px}.ccstack{gap:16px}.mcleft,.mcright{gap:16px}}
+  @media(max-width:560px){.ccwrap{padding:16px 16px 48px}}
+  /* legacy span classes kept inert (cards are 100% inside flex columns) */
+  .col12,.col8,.col7,.col6,.col5,.col4{grid-column:auto}
 
   /* ---- cards ---- */
-  .cc{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:20px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .cc{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:24px;box-shadow:0 8px 30px rgba(15,23,42,.05)}
   .cc.tight{padding:16px}
+  .maincols .cc,.reshelp .cc{transition:box-shadow .2s ease,transform .2s ease}
+  .maincols .cc:hover,.reshelp .cc:hover{transform:translateY(-1px);box-shadow:0 12px 34px rgba(15,23,42,.08)}
+  @media(max-width:1024px){.cc{padding:20px}}
+  @media(max-width:560px){.cc{padding:16px}.cc.tight{padding:14px}}
   .cc h3.t{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0 0 12px;display:flex;align-items:center;gap:8px}
   .cc h3.t .ico{font-size:14px}
   .cc .lnk{margin-left:auto;font-size:12px;font-weight:700;color:var(--blue);text-decoration:none;text-transform:none;letter-spacing:0}
@@ -269,6 +281,17 @@
   .fi.unread::before{content:"";position:absolute;left:-6px;top:16px;width:6px;height:6px;border-radius:50%;background:var(--blue)}
   .empty{font-size:13px;color:var(--mut);text-align:center;padding:18px 0}
 
+  /* upcoming deadlines */
+  .dlrow{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--bd2)}
+  .dlrow:last-child{border-bottom:0}
+  .dldot{width:9px;height:9px;border-radius:50%;flex:none}
+  .dldot.norm{background:var(--blue)}.dldot.soon{background:var(--saffron)}.dldot.over{background:#DC2626}.dldot.meet{background:var(--saffron)}
+  .dlbody{flex:1;min-width:0}
+  .dltitle{font-size:13.5px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dlmeta{font-size:11.5px;color:var(--mut);margin-top:1px}
+  .dlwhen{font-size:11.5px;font-weight:700;color:var(--sub);flex:none}
+  .dlwhen.over{color:#DC2626}.dlwhen.soon{color:var(--saffron)}.dlwhen.norm{color:var(--blue-d)}
+
   /* quick actions */
   .qa{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   @media(max-width:520px){.qa{grid-template-columns:repeat(2,1fr)}}
@@ -315,7 +338,7 @@
 </header>
 
 <div class="ccwrap"><a id="top"></a>
-  <div class="ccgrid" id="app"><div class="cc col12">Loading your command center…</div></div>
+  <div id="app"><div class="cc">Loading your command center…</div></div>
 </div>
 <div id="dropRoot"></div>
 <div id="modalRoot"></div>
@@ -693,6 +716,15 @@ function render(){
   const actHtml=activity().length?activity().map(a=>'<div class="fi"><div class="fd">'+a.ico+'</div><div class="ft">'+a.t+'<div class="fm">'+timeAgo(a.at)+'</div></div></div>').join(''):'<div class="empty">Activity will appear as your team makes progress.</div>';
   const upHtml=upcoming().length?upcoming().map(u=>'<div class="fi"><div class="fd">📅</div><div class="ft"><b>Week '+u.wk+'</b> · '+esc(u.t)+'<div class="fm">Expected: '+esc(u.ask)+'</div></div></div>').join(''):'<div class="empty">All targets complete 🎉</div>';
 
+  // Upcoming deadlines — real data: open tasks (with deadline) + upcoming meetings, colour-coded by proximity
+  const todayStr=ymd(new Date());
+  const dItems=[];
+  myTasks().filter(t=>t.deadline&&TS_OPEN.includes(t.status)).forEach(t=>{const d=new Date(t.deadline+'T23:59:59');const days=Math.ceil((d.getTime()-Date.now())/86400000);dItems.push({date:t.deadline,title:t.title,kind:'Task',days,cls:isOverdue(t)?'over':(days<=3?'soon':'norm')});});
+  MEETINGS.filter(m=>m.status!=='cancelled'&&m.date>=todayStr).forEach(m=>{const days=Math.ceil((new Date(m.date+'T23:59:59').getTime()-Date.now())/86400000);dItems.push({date:m.date,title:m.title,kind:'Meeting',days,cls:'meet',time:m.startTime});});
+  dItems.sort((a,b)=>a.date.localeCompare(b.date));
+  function dWhen(x){if(x.cls==='over')return 'Overdue '+(-x.days)+'d';if(x.days===0)return 'Today';if(x.days===1)return 'Tomorrow';if(x.days<=6)return 'In '+x.days+'d';return new Date(x.date+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'});}
+  const dlHtml=dItems.length?dItems.slice(0,6).map(x=>'<div class="dlrow"><span class="dldot '+x.cls+'"></span><div class="dlbody"><div class="dltitle">'+esc(x.title)+'</div><div class="dlmeta">'+x.kind+(x.time?' · '+esc(x.time):'')+'</div></div><div class="dlwhen '+x.cls+'">'+dWhen(x)+'</div></div>').join(''):'<div class="empty">No upcoming deadlines.</div>';
+
   const unread=CONN&&CONN.conversations&&CONN.conversations[0]?CONN.conversations[0].unread:0;
   const lastMsg=CONN&&CONN.conversations&&CONN.conversations[0]?CONN.conversations[0].lastText:'';
 
@@ -701,106 +733,98 @@ function render(){
       '<p style="font-size:13px;color:var(--sub);margin:0 0 10px">Share these with your teammates. They open the site → <b>Join team</b> tab → enter these to join and chat.</p>'+
       '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="cred">Team ID: '+esc(TEAM.teamCode)+'</span><span class="cred">Password: '+esc(TEAM.teamPassword||'')+'</span><button class="b sm" id="copyInvite">Copy invite</button></div></div>' : '';
 
-  app.innerHTML=
-    // OVERVIEW
-    '<div class="cc col12 ov"><div><h2>'+hi+', '+esc(ME.name.split(' ')[0])+'.</h2><div class="sub">Stage: <b style="color:#fff">'+currentStageName()+'</b> · '+esc(TEAM.teamName)+'</div></div>'+
+  const overviewCard=
+    '<div class="cc ov"><div><h2>'+hi+', '+esc(ME.name.split(' ')[0])+'.</h2><div class="sub">Stage: <b style="color:#fff">'+currentStageName()+'</b> · '+esc(TEAM.teamName)+'</div></div>'+
       '<div class="ovstats"><div class="ovs"><div class="k">Team</div><div class="v">'+esc(TEAM.teamName)+'</div></div>'+
         '<div class="ovs"><div class="k">Team ID</div><div class="v">'+esc(TEAM.teamCode)+'</div></div>'+
-        '<div class="ovs ovprog"><div class="k">Overall progress</div><div class="v">'+c.approved+'/'+c.total+' targets</div><div class="ovbar"><i style="width:'+c.pct+'%"></i></div></div></div></div>'+
-
-    // STAT ROW (assigned tasks — real)
-    '<div class="cc col12 tight"><div class="statrow">'+
+        '<div class="ovs ovprog"><div class="k">Overall progress</div><div class="v">'+c.approved+'/'+c.total+' targets</div><div class="ovbar"><i style="width:'+c.pct+'%"></i></div></div></div></div>';
+  const statRow=
+    '<div class="cc tight"><div class="statrow">'+
       '<div class="stat"><div class="v">'+ts.total+'</div><div class="k">My tasks</div></div>'+
       '<div class="stat up"><div class="v">'+ts.pending+'</div><div class="k">To accept</div></div>'+
       '<div class="stat up"><div class="v">'+ts.active+'</div><div class="k">In progress</div></div>'+
       '<div class="stat dn"><div class="v">'+ts.done+'</div><div class="k">Completed</div></div>'+
       '<div class="stat ov"><div class="v">'+ts.overdue+'</div><div class="k">Overdue</div></div>'+
-      '<div class="stat"><div class="v">'+upcomingMeetingCount()+'</div><div class="k">Meetings</div></div>'+'</div></div>'+
-
-    // NEXT MOVE (7)
-    '<div class="cc col7 nm"><div class="ring">'+nm.ico+'</div><div><div class="eb">Your next move</div><h2>'+nm.t+'</h2><p>'+nm.d+'</p></div>'+
-      '<div class="go"><button class="b pri" id="nmBtn">'+nm.label+' →</button></div></div>'+
-
-    // READINESS (5)
-    '<div class="cc col5"><h3 class="t"><span class="ico">✅</span> Team readiness <span style="margin-left:auto;font-weight:800;color:var(--ink);text-transform:none;letter-spacing:0">'+rd.pct+'%</span></h3><div class="miniprog"><i style="width:'+rd.pct+'%"></i></div>'+
-      '<div class="chk">'+rd.items.map(it=>'<div class="it '+(it.on?'on':'off')+'"><span class="bx">✓</span>'+it.lb+'</div>').join('')+'</div></div>'+
-
-    // JOURNEY (12)
-    '<div class="cc col12"><h3 class="t"><span class="ico">🧭</span> Your SIH journey</h3><div class="jour">'+jhtml+'</div></div>'+
-
-    // ASSIGNED TASKS (Phase 2) — My tasks (+ leader assign/track)
-    taskCards+
-
-    // 8-WEEK TARGETS (7) — milestones, compact list
-    '<div class="cc col7" id="tasks"><h3 class="t"><span class="ico">🗂️</span> 8-week targets <span style="margin-left:auto;font-weight:700;color:var(--sub);text-transform:none;letter-spacing:0;font-size:12px">'+c.approved+' / '+c.total+' approved</span></h3>'+
+      '<div class="stat"><div class="v">'+upcomingMeetingCount()+'</div><div class="k">Meetings</div></div>'+'</div></div>';
+  const nextMoveCard=
+    '<div class="cc nm"><div class="ring">'+nm.ico+'</div><div><div class="eb">Your next move</div><h2>'+nm.t+'</h2><p>'+nm.d+'</p></div>'+
+      '<div class="go"><button class="b pri" id="nmBtn">'+nm.label+' →</button></div></div>';
+  const journeyCard=
+    '<div class="cc"><h3 class="t"><span class="ico">🧭</span> Your SIH journey</h3><div class="jour">'+jhtml+'</div></div>';
+  const eightWeekCard=
+    '<div class="cc" id="tasks"><h3 class="t"><span class="ico">🗂️</span> 8-week targets <span style="margin-left:auto;font-weight:700;color:var(--sub);text-transform:none;letter-spacing:0;font-size:12px">'+c.approved+' / '+c.total+' approved</span></h3>'+
       '<div class="tfilter"><button class="on" data-f="all">All</button><button data-f="todo">To do ('+gc.todo+')</button><button data-f="prog">In progress ('+(gc.prog)+')</button><button data-f="chg">Needs fix ('+gc.chg+')</button><button data-f="done">Done ('+gc.done+')</button></div>'+
-      '<div class="tlist" id="tlist">'+tlistHtml+'</div></div>'+
-
-    // UNIFIED CALENDAR (5) — meetings + task deadlines
-    buildCalendarCard()+
-
-    // TEAM HUB (6)
-    '<div class="cc col6" id="team"><h3 class="t"><span class="ico">👥</span> Team hub</h3><div class="avatars">'+avs+'</div>'+
+      '<div class="tlist" id="tlist">'+tlistHtml+'</div></div>';
+  const teamHubCard=
+    '<div class="cc" id="team"><h3 class="t"><span class="ico">👥</span> Team hub</h3><div class="avatars">'+avs+'</div>'+
       '<div class="kv"><span class="k">Team name</span><span class="v">'+esc(TEAM.teamName)+'</span></div>'+
       '<div class="kv"><span class="k">Team ID</span><span class="v">'+esc(TEAM.teamCode)+'</span></div>'+
       (ME.loginId?'<div class="kv"><span class="k">Your Login ID</span><span class="v cred" style="font-weight:700">'+esc(ME.loginId)+'</span></div>':'')+
       '<div class="kv"><span class="k">Captain</span><span class="v">'+esc(capName)+'</span></div>'+
       '<div class="kv"><span class="k">Members</span><span class="v">'+teamSize()+' / 6</span></div>'+
       '<div class="kv"><span class="k">Domain</span><span class="v">'+esc(domain)+'</span></div>'+
-      (ME.skills?'<div class="kv"><span class="k">Your skills</span><span class="v" style="max-width:60%">'+esc(ME.skills)+'</span></div>':'')+'</div>'+
-
-    // CHALLENGE (6)
-    '<div class="cc col6"><h3 class="t"><span class="ico">🎯</span> Your challenge</h3>'+
-      '<div style="font-size:16px;font-weight:800;color:var(--ink);margin-bottom:2px">'+esc(problemName)+'</div>'+
-      '<div class="tags"><span class="tag">'+esc(domain)+'</span>'+(TEAM.psId?'<span class="tag">PS '+esc(TEAM.psId)+'</span>':'')+'<span class="tag">'+(TEAM.psId?'Locked in':'Not chosen')+'</span></div>'+
-      (idea&&idea.edge?'<p style="font-size:12.5px;color:var(--sub);margin:10px 0 0;line-height:1.5">'+esc(idea.edge)+'</p>':'')+
-      '<div style="margin-top:12px"><a class="b sm" href="#setup">Edit in setup →</a></div></div>'+
-
-    // MISSION SETUP (existing engine — IDs preserved)
-    '<div class="cc col7" id="setup"><h3 class="t"><span class="ico">⚙️</span> Mission setup <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--mut)">(anyone on the team can edit)</span></h3>'+
+      (ME.skills?'<div class="kv"><span class="k">Your skills</span><span class="v" style="max-width:60%">'+esc(ME.skills)+'</span></div>':'')+'</div>';
+  const missionSetupCard=
+    '<div class="cc" id="setup"><h3 class="t"><span class="ico">⚙️</span> Mission setup <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--mut)">(anyone on the team can edit)</span></h3>'+
       '<div class="fgrid"><div class="fld"><label>Team name</label><input id="teamName" value="'+esc(TEAM.teamName||'')+'"/></div>'+ideaSetup+
         '<div class="fld"><label>Problem Statement ID</label><input id="psId" value="'+esc(TEAM.psId||'')+'" placeholder="SIH26XXXX"/></div>'+
         '<div class="fld"><label>Live submissions on that PS</label><input id="psCount" type="number" min="0" value="'+(TEAM.psCount==null?'':TEAM.psCount)+'" placeholder="from portal"/></div>'+
         '<div class="fld"><label>Members (up to 6)</label><input id="members" value="'+esc((TEAM.members||[]).join(', '))+'"/></div>'+
         '<div class="fld"><label>Female members (≥1)</label><input id="fcount" type="number" min="0" max="6" value="'+(TEAM.femaleCount||0)+'"/></div></div>'+
-      '<button class="b pri" id="saveTeam" style="margin-top:14px">Save setup</button><div class="err" id="tErr"></div></div>'+
-
-    // CHAT (5)
-    '<div class="cc col5" id="chat"><h3 class="t"><span class="ico">💬</span> Team chat'+(unread?' <span style="background:var(--blue);color:#fff;border-radius:99px;padding:1px 7px;font-size:10px;margin-left:2px">'+unread+'</span>':'')+' <a class="lnk" href="/connect.html">Open →</a></h3>'+
-      '<div class="chatbox"><div class="msgs" id="msgs"></div><form class="chatform" id="chatForm"><input id="chatInput" placeholder="Message your team…" autocomplete="off"/><button class="b pri" type="submit">Send</button></form></div></div>'+
-
-    // ANNOUNCEMENTS
-    '<div class="cc col6"><h3 class="t"><span class="ico">📢</span> Announcements &amp; targets</h3><div class="feed">'+annHtml+'</div></div>'+
-
-    // ACTIVITY
-    '<div class="cc col6"><h3 class="t"><span class="ico">⚡</span> Recent activity</h3><div class="feed">'+actHtml+'</div></div>'+
-
-    // QUICK ACTIONS (12)
-    '<div class="cc col12"><h3 class="t"><span class="ico">⚡</span> Quick actions</h3><div class="qa" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">'+
+      '<button class="b pri" id="saveTeam" style="margin-top:14px">Save setup</button><div class="err" id="tErr"></div></div>';
+  const announcementsCard=
+    '<div class="cc"><h3 class="t"><span class="ico">📢</span> Announcements &amp; targets</h3><div class="feed">'+annHtml+'</div></div>';
+  const activityCard=
+    '<div class="cc"><h3 class="t"><span class="ico">⚡</span> Recent activity</h3><div class="feed">'+actHtml+'</div></div>';
+  const deadlinesCard=
+    '<div class="cc"><h3 class="t"><span class="ico">⏰</span> Upcoming deadlines</h3><div class="dllist">'+dlHtml+'</div></div>';
+  const challengeCard=
+    '<div class="cc"><h3 class="t"><span class="ico">🎯</span> Your challenge</h3>'+
+      '<div style="font-size:16px;font-weight:800;color:var(--ink);margin-bottom:2px">'+esc(problemName)+'</div>'+
+      '<div class="tags"><span class="tag">'+esc(domain)+'</span>'+(TEAM.psId?'<span class="tag">PS '+esc(TEAM.psId)+'</span>':'')+'<span class="tag">'+(TEAM.psId?'Locked in':'Not chosen')+'</span></div>'+
+      (idea&&idea.edge?'<p style="font-size:12.5px;color:var(--sub);margin:10px 0 0;line-height:1.5">'+esc(idea.edge)+'</p>':'')+
+      '<div style="margin-top:12px"><a class="b sm" href="#setup">Edit in setup →</a></div></div>';
+  const readinessCard=
+    '<div class="cc"><h3 class="t"><span class="ico">✅</span> Team readiness <span style="margin-left:auto;font-weight:800;color:var(--ink);text-transform:none;letter-spacing:0">'+rd.pct+'%</span></h3><div class="miniprog"><i style="width:'+rd.pct+'%"></i></div>'+
+      '<div class="chk">'+rd.items.map(it=>'<div class="it '+(it.on?'on':'off')+'"><span class="bx">✓</span>'+it.lb+'</div>').join('')+'</div></div>';
+  const oddsCard=
+    '<div class="cc"><h3 class="t"><span class="ico">📡</span> Selection odds</h3><div class="odds"><div class="big" id="oBig" style="color:'+o.c+'">'+o.big+'</div><div class="lb">chance to reach finale</div><div class="prog"><i id="oBar" style="width:'+o.w+'%"></i></div><div class="pv" id="oV" style="color:'+o.c+'">'+o.t+'</div></div></div>';
+  const chatCard=
+    '<div class="cc" id="chat"><h3 class="t"><span class="ico">💬</span> Team chat'+(unread?' <span style="background:var(--blue);color:#fff;border-radius:99px;padding:1px 7px;font-size:10px;margin-left:2px">'+unread+'</span>':'')+' <a class="lnk" href="/connect.html">Open →</a></h3>'+
+      '<div class="chatbox"><div class="msgs" id="msgs"></div><form class="chatform" id="chatForm"><input id="chatInput" placeholder="Message your team…" autocomplete="off"/><button class="b pri" type="submit">Send</button></form></div></div>';
+  const quickActionsCard=
+    '<div class="cc"><h3 class="t"><span class="ico">⚡</span> Quick actions</h3><div class="qa" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">'+
       '<a href="/connect.html"><span class="qi">💬</span><span class="ql">Open chat</span></a>'+
       '<a href="#team"><span class="qi">👥</span><span class="ql">View team</span></a>'+
       '<a href="#tasks"><span class="qi">🗂️</span><span class="ql">View tasks</span></a>'+
       '<a href="#setup"><span class="qi">🎯</span><span class="ql">Problem</span></a>'+
       '<a href="#resources"><span class="qi">📚</span><span class="ql">Resources</span></a>'+
-      '<a href="/#faq"><span class="qi">🛟</span><span class="ql">Support</span></a>'+'</div></div>'+
-
-    inviteCard+
-
-    // RESOURCES
-    '<div class="cc col8" id="resources"><h3 class="t"><span class="ico">📚</span> Resources</h3><div class="qa" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">'+
+      '<a href="/#faq"><span class="qi">🛟</span><span class="ql">Support</span></a>'+'</div></div>';
+  const resourcesCard=
+    '<div class="cc" id="resources"><h3 class="t"><span class="ico">📚</span> Resources</h3><div class="qa" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">'+
       '<a href="https://sih.gov.in" target="_blank" rel="noopener"><span class="qi">🏛️</span><span class="ql">SIH Portal</span></a>'+
       '<a href="https://sih.gov.in/sih2024PS" target="_blank" rel="noopener"><span class="qi">📄</span><span class="ql">Problem Statements</span></a>'+
       '<a href="/#journey"><span class="qi">🗺️</span><span class="ql">Campaign Guide</span></a>'+
       '<a href="/#faq"><span class="qi">❓</span><span class="ql">FAQ</span></a>'+
       '<a href="#tasks"><span class="qi">📊</span><span class="ql">Submission Guide</span></a>'+
-      '<a href="/connect.html"><span class="qi">💬</span><span class="ql">Ask Core Team</span></a>'+'</div></div>'+
-
-    // SUPPORT
-    '<div class="cc col4"><h3 class="t"><span class="ico">🛟</span> Need help?</h3><div class="feed">'+
+      '<a href="/connect.html"><span class="qi">💬</span><span class="ql">Ask Core Team</span></a>'+'</div></div>';
+  const supportCard=
+    '<div class="cc"><h3 class="t"><span class="ico">🛟</span> Need help?</h3><div class="feed">'+
       '<a class="fi" style="text-decoration:none" href="/#faq"><div class="fd">❓</div><div class="ft" style="color:var(--ink)">FAQ<div class="fm">Common questions</div></div></a>'+
       '<a class="fi" style="text-decoration:none" href="/connect.html"><div class="fd">💬</div><div class="ft" style="color:var(--ink)">Contact core team<div class="fm">Chat with mentors</div></div></a>'+
       '<a class="fi" style="text-decoration:none" href="#chat"><div class="fd">🐞</div><div class="ft" style="color:var(--ink)">Report an issue<div class="fm">Message us here</div></div></a>'+
       '<a class="fi" style="text-decoration:none" href="/#journey"><div class="fd">📖</div><div class="ft" style="color:var(--ink)">Platform guide<div class="fm">How it works</div></div></a>'+'</div></div>';
+
+  app.innerHTML=
+    '<div class="ccstack">'+
+      overviewCard+ statRow+ nextMoveCard+ journeyCard+
+      '<div class="maincols">'+
+        '<div class="mcleft">'+ taskCards+ eightWeekCard+ announcementsCard+ activityCard+ teamHubCard+ missionSetupCard+ '</div>'+
+        '<div class="mcright">'+ buildCalendarCard()+ deadlinesCard+ challengeCard+ readinessCard+ oddsCard+ chatCard+ '</div>'+
+      '</div>'+
+      quickActionsCard+ inviteCard+
+      '<div class="reshelp">'+ resourcesCard+ supportCard+ '</div>'+
+    '</div>';
 
   // ---- bind (all existing handlers preserved) ----
   if(!TEAM.wantsLeader){fillIdeas(document.getElementById('idea'),TEAM.ideaId);fillIdeas(document.getElementById('backup'),TEAM.backupIdeaId);}

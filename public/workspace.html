@@ -743,6 +743,7 @@ function render(){
     '<div class="cc col6" id="team"><h3 class="t"><span class="ico">👥</span> Team hub</h3><div class="avatars">'+avs+'</div>'+
       '<div class="kv"><span class="k">Team name</span><span class="v">'+esc(TEAM.teamName)+'</span></div>'+
       '<div class="kv"><span class="k">Team ID</span><span class="v">'+esc(TEAM.teamCode)+'</span></div>'+
+      (ME.loginId?'<div class="kv"><span class="k">Your Login ID</span><span class="v cred" style="font-weight:700">'+esc(ME.loginId)+'</span></div>':'')+
       '<div class="kv"><span class="k">Captain</span><span class="v">'+esc(capName)+'</span></div>'+
       '<div class="kv"><span class="k">Members</span><span class="v">'+teamSize()+' / 6</span></div>'+
       '<div class="kv"><span class="k">Domain</span><span class="v">'+esc(domain)+'</span></div>'+

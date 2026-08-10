@@ -52,6 +52,11 @@
   .qrframe{border-radius:18px}
   .modal{border-radius:24px}
   .cred{border-radius:10px}
+  .kvbox{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .kvr{display:flex;justify-content:space-between;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line);font-size:13.5px;align-items:center}
+  .kvr:last-child{border-bottom:0}
+  .kvr span{color:var(--muted)}
+  #dirRows td .mono{font-family:var(--mono)}
 
   /* table polish — subtle header, soft hover, no heavy borders */
   table.t th{background:var(--surface-2);letter-spacing:.03em}
@@ -116,6 +121,16 @@
     <div class="filterbar" id="filters" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
     <div class="tblwrap">
       <table class="t"><thead><tr><th>Team</th><th>ID</th><th>Pod</th><th>Idea</th><th>PS</th><th>Odds</th><th>Progress</th><th>Signed</th><th>Review</th></tr></thead><tbody id="rows"></tbody></table>
+    </div>
+  </div>
+
+  <div class="card pad rise" id="dirCard">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap"><h2 style="font-size:18px">Student directory</h2><span class="spacer"></span>
+      <input id="dirSearch" placeholder="Search name, Login ID, team, college…" style="font:inherit;font-size:13px;padding:8px 12px;border:1px solid var(--line-strong);border-radius:9px;background:var(--surface);min-width:min(280px,60vw)"/>
+      <select id="dirRole" style="font:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:9px;background:var(--surface)"><option value="all">All roles</option><option value="Leader">Leaders</option><option value="Member">Members</option><option value="Applicant">Applicants</option></select>
+      <span class="faint mono" style="font-size:12px" id="dirCount"></span></div>
+    <div class="tblwrap">
+      <table class="t"><thead><tr><th>Name</th><th>Login ID</th><th>Team</th><th>Role</th><th>Course</th><th>College</th><th>Status</th><th>Actions</th></tr></thead><tbody id="dirRows"></tbody></table>
     </div>
   </div>
 
@@ -238,7 +253,58 @@ async function openUser(id){
   document.querySelectorAll('#modalRoot [data-rev]').forEach(b=>b.addEventListener('click',async()=>{const sid=b.dataset.sid,st=b.dataset.rev;const fb=document.querySelector('#modalRoot .fbIn[data-sid="'+sid+'"]');if(st==='changes'&&(!fb||!fb.value.trim())){fb.focus();fb.style.borderColor='var(--crowd)';return;}await api('/api/admin/review',{method:'POST',body:JSON.stringify({submissionId:sid,status:st,feedback:fb?fb.value:''})});toast(st==='approved'?'Approved':'Changes requested');await refresh();openUser(id);}));
 }
 
-async function refresh(){DATA=await api('/api/admin/overview');renderStats();renderPipe();renderFilters();renderRows();}
+let STUDENTS=[];
+function timeAgo(ts){if(!ts)return'—';const s=(Date.now()-ts)/1000;if(s<3600)return Math.max(1,Math.floor(s/60))+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';}
+async function loadStudents(){try{const d=await api('/api/admin/students');STUDENTS=d.students||[];}catch(e){STUDENTS=[];}renderDirectory();}
+function renderDirectory(){
+  const tb=document.getElementById('dirRows');if(!tb)return;
+  const q=(document.getElementById('dirSearch').value||'').toLowerCase().trim();
+  const role=document.getElementById('dirRole').value;
+  const rows=STUDENTS.filter(s=>{
+    if(role!=='all'&&s.role!==role)return false;
+    if(!q)return true;
+    return [s.name,s.loginId,s.teamCode,s.teamName,s.college,s.course,s.email].some(v=>(v||'').toLowerCase().includes(q));
+  });
+  document.getElementById('dirCount').textContent=rows.length+' of '+STUDENTS.length;
+  tb.innerHTML=rows.length?rows.map(s=>{
+    const rolebadge=s.role==='Leader'?'b-proven':s.role==='Member'?'b-mid':'b-todo';
+    const st=s.active?'<span class="badge b-approved">active</span>':'<span class="badge b-changes">inactive</span>';
+    return '<tr>'+
+      '<td><b>'+esc(s.name)+'</b><div class="faint" style="font-size:11px">'+esc(s.email)+'</div></td>'+
+      '<td class="mono">'+(s.loginId?esc(s.loginId):'<span class="faint">—</span>')+'</td>'+
+      '<td>'+(s.teamCode?('<b>'+esc(s.teamCode)+'</b><div class="faint" style="font-size:11px">'+esc(s.teamName||'')+'</div>'):'<span class="faint">—</span>')+'</td>'+
+      '<td><span class="badge '+rolebadge+'">'+esc(s.role)+'</span></td>'+
+      '<td style="font-size:12.5px">'+(esc(s.course)||'<span class="faint">—</span>')+'</td>'+
+      '<td style="font-size:12.5px">'+(esc(s.college)||'<span class="faint">—</span>')+'</td>'+
+      '<td>'+st+'<div class="faint" style="font-size:10.5px;margin-top:2px">seen '+timeAgo(s.lastActivity)+'</div></td>'+
+      '<td><div class="pillbtn" style="gap:6px">'+
+        '<button class="btn sm ghost" data-reset="'+s.id+'">Reset</button>'+
+        '<button class="btn sm ghost" data-active="'+s.id+'" data-to="'+(s.active?'0':'1')+'">'+(s.active?'Deactivate':'Activate')+'</button>'+
+        (s.teamCode?'<button class="btn sm ghost" data-team="'+s.id+'">Team</button>':'')+
+      '</div></td></tr>';
+  }).join(''):'<tr><td colspan="8" class="faint" style="text-align:center;padding:20px">No students match.</td></tr>';
+  tb.querySelectorAll('[data-reset]').forEach(b=>b.addEventListener('click',()=>resetCred(parseInt(b.dataset.reset,10))));
+  tb.querySelectorAll('[data-active]').forEach(b=>b.addEventListener('click',()=>toggleActive(parseInt(b.dataset.active,10),b.dataset.to==='1')));
+  tb.querySelectorAll('[data-team]').forEach(b=>b.addEventListener('click',()=>openTeamFor(parseInt(b.dataset.team,10))));
+}
+async function resetCred(id){const s=STUDENTS.find(x=>x.id===id);if(!s)return;
+  if(!confirm('Reset credentials for '+s.name+'?\nA new one-time password will be generated (the old one stops working).'))return;
+  try{const r=await api('/api/admin/user/'+id+'/reset-password',{method:'POST'});
+    document.getElementById('modalRoot').innerHTML='<div class="overlay" id="rov"><div class="card pad modal" style="max-width:420px">'+
+      '<h2 style="font-size:19px;margin-bottom:4px">New credentials</h2><p class="faint" style="font-size:12.5px;margin-bottom:14px">Share these once with '+esc(r.name)+' over a secure channel. This password is shown only now.</p>'+
+      '<div class="kvbox"><div class="kvr"><span>Login ID</span><b class="mono">'+esc(r.loginId||'—')+'</b></div><div class="kvr"><span>Email</span><b>'+esc(r.email)+'</b></div><div class="kvr"><span>New password</span><b class="mono" style="font-size:16px;color:var(--accent)">'+esc(r.password)+'</b></div></div>'+
+      '<div class="pillbtn" style="margin-top:14px"><button class="btn sm" id="rcopy">Copy</button><button class="btn sm ghost" id="rclose">Done</button></div></div></div>';
+    document.getElementById('rcopy').addEventListener('click',()=>{navigator.clipboard&&navigator.clipboard.writeText('Login ID: '+(r.loginId||r.email)+'\nPassword: '+r.password);toast('Copied');});
+    const close=()=>document.getElementById('modalRoot').innerHTML='';document.getElementById('rclose').addEventListener('click',close);
+    document.getElementById('rov').addEventListener('click',e=>{if(e.target.id==='rov')close();});
+  }catch(ex){toast(ex.message);}}
+async function toggleActive(id,to){const s=STUDENTS.find(x=>x.id===id);if(!s)return;
+  if(!to&&!confirm('Deactivate '+s.name+'? They will be logged out and cannot sign in until reactivated.'))return;
+  try{await api('/api/admin/user/'+id+'/active',{method:'POST',body:JSON.stringify({active:to})});toast(to?'Activated':'Deactivated');await loadStudents();}catch(ex){toast(ex.message);}}
+function openTeamFor(id){const s=STUDENTS.find(x=>x.id===id);if(!s||!s.teamCode)return;
+  const team=(DATA.teams||[]).find(t=>t.teamCode===s.teamCode);if(team)openUser(team.id);else toast('Open the Teams table to manage this team.');}
+
+async function refresh(){DATA=await api('/api/admin/overview');renderStats();renderPipe();renderFilters();renderRows();loadStudents();}
 async function boot(){
   const me=await api('/api/me').catch(()=>({user:null}));
   if(!me.user){location.href='/apply.html?login';return;}
@@ -251,6 +317,8 @@ async function boot(){
   document.getElementById('qrUrl').textContent=origin+'/';
   await refresh();
 }
+document.getElementById('dirSearch').addEventListener('input',renderDirectory);
+document.getElementById('dirRole').addEventListener('change',renderDirectory);
 document.getElementById('logout').addEventListener('click',async()=>{await api('/api/logout',{method:'POST'});location.href='/';});
 boot();
 </script>

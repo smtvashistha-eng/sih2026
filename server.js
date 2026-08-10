@@ -17,7 +17,9 @@ function getUser(req) {
   if (!m) return null;
   const uid = verifySession(decodeURIComponent(m[1]));
   if (!uid) return null;
-  return db.users.find(u => String(u.id) === String(uid)) || null;
+  const u = db.users.find(u => String(u.id) === String(uid));
+  if (u && u.active === false) return null; // deactivated accounts cannot authenticate
+  return u || null;
 }
 function setSession(res, userId) {
   res.setHeader('Set-Cookie', 'sih_session=' + encodeURIComponent(signSession(userId)) +
@@ -36,6 +38,27 @@ function genPassword() {
   let s = ''; const b = crypto.randomBytes(6);
   for (let i = 0; i < 6; i++) s += chars[b[i] % chars.length];
   return s;
+}
+// A friendly, unique per-student login identifier, e.g. SIH12-STU-001 / SIH12-LEAD-001.
+// It is an ADDITIONAL identifier — email + account password still work unchanged.
+function assignLoginId(user, cap, role) {
+  if (user.loginId) return user.loginId;
+  const base = String((cap && cap.teamCode) || 'SIH-00').replace(/-/g, '').toUpperCase();
+  const tag = role === 'leader' ? 'LEAD' : 'STU';
+  let n = db.users.filter(u => (u.loginId || '').indexOf(base + '-' + tag + '-') === 0).length + 1;
+  let cand;
+  do { cand = base + '-' + tag + '-' + String(n).padStart(3, '0'); n++; } while (db.users.some(u => u.loginId === cand));
+  user.loginId = cand; return cand;
+}
+// Backfill Login IDs for any pre-existing team members (one-time, on boot).
+function ensureLoginIds() {
+  let changed = false;
+  db.users.forEach(u => {
+    if (u.loginId) return;
+    if (u.role === 'member' && u.status === 'Selected') { assignLoginId(u, u, 'leader'); changed = true; }
+    else if (u.role === 'student' && u.teamOf) { const cap = db.users.find(x => x.id === u.teamOf); if (cap) { assignLoginId(u, cap, 'member'); changed = true; } }
+  });
+  if (changed) save();
 }
 function progressFor(userId) {
   const total = db.milestones.length;
@@ -57,7 +80,8 @@ function selfView(u) {
     members: u.members || [], femaleCount: u.femaleCount || 0,
     signedAgreement: !!u.signedAgreement, signedName: u.signedName || '', signedAt: u.signedAt || null,
     directives: u.directives || [],
-    teamOf: u.teamOf || null, isCaptain: u.status === 'Selected'
+    teamOf: u.teamOf || null, isCaptain: u.status === 'Selected',
+    loginId: u.loginId || ''
   };
 }
 // The "team" a user belongs to is always the captain's record (a Selected member).
@@ -148,6 +172,7 @@ app.post('/api/join', (req, res) => {
   });
   if (!Array.isArray(cap.members)) cap.members = [];
   if (!cap.members.includes(name) && cap.members.length < 6) cap.members.push(name);
+  assignLoginId(db.users.find(u => u.id === id), cap, 'member');
   save();
   setSession(res, id);
   res.json({ ok: true, user: selfView(db.users.find(u => u.id === id)) });
@@ -156,12 +181,25 @@ app.post('/api/join', (req, res) => {
 app.post('/api/login', (req, res) => {
   const idf = clean((req.body || {}).identifier, 120).toLowerCase();
   const password = String((req.body || {}).password || '');
+  const deactivated = u => u && u.active === false;
   // email + account password
   let user = db.users.find(u => u.email === idf);
-  if (user && verifyPassword(password, user.pass)) { setSession(res, user.id); return res.json({ ok: true, user: selfView(user) }); }
+  if (user && verifyPassword(password, user.pass)) {
+    if (deactivated(user)) return res.status(403).json({ error: 'This account has been deactivated. Contact the core team.' });
+    setSession(res, user.id); return res.json({ ok: true, user: selfView(user) });
+  }
+  // Login ID + account password (e.g. SIH12-STU-001)
+  const byLogin = db.users.find(u => (u.loginId || '').toLowerCase() === idf);
+  if (byLogin && verifyPassword(password, byLogin.pass)) {
+    if (deactivated(byLogin)) return res.status(403).json({ error: 'This account has been deactivated. Contact the core team.' });
+    setSession(res, byLogin.id); return res.json({ ok: true, user: selfView(byLogin) });
+  }
   // team code + team password (case-insensitive code)
   const byCode = db.users.find(u => (u.teamCode || '').toLowerCase() === idf);
-  if (byCode && byCode.teamPasswordPlain && byCode.teamPasswordPlain === password) { setSession(res, byCode.id); return res.json({ ok: true, user: selfView(byCode) }); }
+  if (byCode && byCode.teamPasswordPlain && byCode.teamPasswordPlain === password) {
+    if (deactivated(byCode)) return res.status(403).json({ error: 'This account has been deactivated. Contact the core team.' });
+    setSession(res, byCode.id); return res.json({ ok: true, user: selfView(byCode) });
+  }
   return res.status(401).json({ error: 'Wrong login or password.' });
 });
 
@@ -472,8 +510,16 @@ function adminRow(u) {
     pod: u.pod, ideaId: u.ideaId, ideaName: idea ? idea.name : null, ideaZone: idea ? idea.zone : null,
     psId: u.psId, psCount: u.psCount, odds, members: u.members || [], femaleCount: u.femaleCount,
     signedAgreement: !!u.signedAgreement, signedName: u.signedName, signedAt: u.signedAt,
-    directives: u.directives || [], progress: prog, createdAt: u.createdAt
+    directives: u.directives || [], progress: prog, createdAt: u.createdAt,
+    loginId: u.loginId || '', active: u.active !== false
   };
+}
+// Best-effort "last activity" from real events (comments authored, tasks touched). No fabrication.
+function lastActivityFor(uid) {
+  let t = 0;
+  db.comments.forEach(c => { if (c.authorId === uid && c.at > t) t = c.at; });
+  db.tasks.forEach(k => { if ((k.assignedTo === uid || k.createdBy === uid) && (k.updatedAt || 0) > t) t = k.updatedAt; });
+  return t || null;
 }
 app.get('/api/admin/overview', requireCore, (req, res) => {
   const members = db.users.filter(u => u.role === 'member').map(adminRow);
@@ -533,6 +579,7 @@ app.put('/api/admin/user/:id/status', requireCore, (req, res) => {
     if (!u.teamName) u.teamName = u.name.split(' ')[0] + "'s Team";
     if (b.ideaId && !u.wantsLeader) u.ideaId = parseInt(b.ideaId, 10);
     if (b.pod && db.pods.includes(b.pod)) u.pod = b.pod;
+    assignLoginId(u, u, 'leader');
   }
   save(); res.json({ ok: true, user: adminRow(u) });
 });
@@ -555,6 +602,44 @@ app.post('/api/admin/user/:id/directive', requireCore, (req, res) => {
   if (!Array.isArray(u.directives)) u.directives = [];
   u.directives.unshift({ id: nextId(), text, by: req.me.name, at: Date.now(), done: false });
   save(); res.json({ ok: true, directives: u.directives });
+});
+
+/* ---------------- student directory + credentials (Phase 4) ---------------- */
+app.get('/api/admin/students', requireCore, (req, res) => {
+  const rows = db.users.filter(u => u.role === 'member' || u.role === 'student').map(u => {
+    const cap = resolveTeam(u);
+    const role = u.role === 'student' ? 'Member' : (u.status === 'Selected' ? 'Leader' : 'Applicant');
+    return {
+      id: u.id, name: u.name, loginId: u.loginId || '', email: u.email,
+      teamCode: cap ? cap.teamCode : '', teamName: cap ? (cap.teamName || cap.name) : '',
+      role, status: u.status, active: u.active !== false,
+      course: [u.branch, u.year].filter(Boolean).join(' '), college: u.college || '',
+      joinedAt: u.createdAt || null, lastActivity: lastActivityFor(u.id)
+    };
+  }).sort((a, b) => (a.teamCode || 'zz').localeCompare(b.teamCode || 'zz') || a.name.localeCompare(b.name));
+  res.json({ students: rows });
+});
+
+// Reset a student's ACCOUNT password → return the new password once (one-time reveal). Never exposes the old one.
+app.post('/api/admin/user/:id/reset-password', requireCore, (req, res) => {
+  const u = db.users.find(x => x.id === parseInt(req.params.id, 10) && (x.role === 'member' || x.role === 'student'));
+  if (!u) return res.status(404).json({ error: 'Not found' });
+  const np = genPassword();
+  u.pass = hashPassword(np);
+  const cap = resolveTeam(u);
+  logActivity(cap ? cap.id : 0, req.me.name + ' reset credentials for ' + u.name, { type: 'credential', userId: u.id });
+  save();
+  res.json({ ok: true, password: np, loginId: u.loginId || '', email: u.email, name: u.name });
+});
+
+// Activate / deactivate a student's access. Deactivated accounts cannot authenticate.
+app.post('/api/admin/user/:id/active', requireCore, (req, res) => {
+  const u = db.users.find(x => x.id === parseInt(req.params.id, 10) && (x.role === 'member' || x.role === 'student'));
+  if (!u) return res.status(404).json({ error: 'Not found' });
+  u.active = !!(req.body || {}).active;
+  const cap = resolveTeam(u);
+  logActivity(cap ? cap.id : 0, req.me.name + ' ' + (u.active ? 'activated' : 'deactivated') + ' ' + u.name, { type: 'access', userId: u.id });
+  save(); res.json({ ok: true, active: u.active });
 });
 
 app.post('/api/admin/review', requireCore, (req, res) => {
@@ -655,5 +740,9 @@ const PORT = process.env.PORT || 4000;
   await init();
   seed();
   if (!Array.isArray(db.comments)) { db.comments = []; save(); }
+  if (!Array.isArray(db.tasks)) db.tasks = [];
+  if (!Array.isArray(db.meetings)) db.meetings = [];
+  if (!Array.isArray(db.activityLog)) db.activityLog = [];
+  ensureLoginIds();
   app.listen(PORT, () => console.log('SIH Command Center running on http://localhost:' + PORT));
 })().catch(e => { console.error('Startup failed:', e); process.exit(1); });

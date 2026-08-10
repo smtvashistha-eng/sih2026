@@ -642,6 +642,32 @@ app.post('/api/admin/user/:id/active', requireCore, (req, res) => {
   save(); res.json({ ok: true, active: u.active });
 });
 
+/* ---------------- admin global ops (Phase 5) ---------------- */
+function teamLabel(teamId) { const cap = db.users.find(u => u.id === teamId); return cap ? { teamCode: cap.teamCode || '', teamName: cap.teamName || cap.name } : { teamCode: '', teamName: '' }; }
+function selectedTeams() { return db.users.filter(u => u.role === 'member' && u.status === 'Selected'); }
+
+// Every team's tasks + a roster map for assignment.
+app.get('/api/admin/tasks', requireCore, (req, res) => {
+  const tasks = db.tasks.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).map(t => Object.assign({}, t, teamLabel(t.teamId)));
+  const teams = selectedTeams().map(t => ({
+    id: t.id, teamCode: t.teamCode || '', teamName: t.teamName || t.name,
+    members: teamMemberIds(t.id).map(id => ({ id, name: nameOf(id), isLeader: id === t.id }))
+  }));
+  res.json({ tasks, teams });
+});
+
+// Every team's meetings (for the global calendar).
+app.get('/api/admin/meetings', requireCore, (req, res) => {
+  const meetings = db.meetings.slice().sort((a, b) => (a.date + (a.startTime || '')).localeCompare(b.date + (b.startTime || ''))).map(m => Object.assign({}, m, teamLabel(m.teamId)));
+  res.json({ meetings });
+});
+
+// Recent operational activity across all teams.
+app.get('/api/admin/activity', requireCore, (req, res) => {
+  const activity = db.activityLog.slice(-80).reverse().map(a => Object.assign({}, a, teamLabel(a.teamId)));
+  res.json({ activity });
+});
+
 app.post('/api/admin/review', requireCore, (req, res) => {
   const b = req.body || {};
   const sub = db.submissions.find(s => s.id === parseInt(b.submissionId, 10));

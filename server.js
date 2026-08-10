@@ -392,6 +392,73 @@ app.delete('/api/tasks/:id', requireAuth, (req, res) => {
   res.json({ ok: true, task: t });
 });
 
+/* ---------------- meetings (Phase 3) ----------------
+   A meeting belongs to a team. Leader (own team) or core (any team) can schedule.
+   All team members can view. Creating notifies the team + core via SSE + activity log. */
+function isLeaderOrCoreForTeam(u, teamId) { return isCore(u) || isLeaderOf(u, teamId); }
+
+app.get('/api/my/meetings', requireActiveTeam, (req, res) => {
+  const teamId = req.team.id;
+  const meetings = db.meetings.filter(m => m.teamId === teamId).slice().sort((a, b) => (a.date + (a.startTime || '')).localeCompare(b.date + (b.startTime || '')));
+  res.json({ meetings, isLeader: req.me.id === teamId });
+});
+
+app.post('/api/meetings', requireAuth, (req, res) => {
+  const b = req.body || {};
+  const core = isCore(req.me);
+  const cap = resolveTeam(req.me);
+  const leader = !!(cap && cap.id === req.me.id);
+  if (!core && !leader) return res.status(403).json({ error: 'Only the team leader or core team can schedule meetings.' });
+  const teamId = core ? parseInt(b.teamId, 10) : cap.id;
+  const team = db.users.find(u => u.id === teamId && u.status === 'Selected');
+  if (!team) return res.status(404).json({ error: 'Team not found.' });
+  const title = clean(b.title, 160);
+  const date = clean(b.date, 10);
+  if (!title) return res.status(400).json({ error: 'Meeting title is required.' });
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: 'A valid date is required.' });
+  const all = teamMemberIds(teamId);
+  let participants = Array.isArray(b.participants) && b.participants.length
+    ? b.participants.map(x => parseInt(x, 10)).filter(id => all.includes(id)) : all;
+  const m = {
+    id: nextId(), teamId, title, date, startTime: clean(b.startTime, 5), duration: Math.max(0, parseInt(b.duration, 10) || 60),
+    location: clean(b.location, 200), link: clean(b.link, 500), agenda: clean(b.agenda, 2000), participants,
+    createdBy: req.me.id, createdByName: req.me.name, createdByRole: core ? 'core' : 'leader',
+    status: 'scheduled', createdAt: Date.now(), updatedAt: Date.now()
+  };
+  db.meetings.push(m);
+  logActivity(teamId, (core ? 'Core team' : req.me.name) + ' scheduled meeting "' + title + '" on ' + date + (m.startTime ? ' at ' + m.startTime : ''), { type: 'meeting', meetingId: m.id }); save();
+  try { emitToTeam(teamId, 'meeting', { action: 'created', meeting: m }); } catch (e) {}
+  res.json({ ok: true, meeting: m });
+});
+
+app.put('/api/meetings/:id', requireAuth, (req, res) => {
+  const m = db.meetings.find(x => x.id === parseInt(req.params.id, 10));
+  if (!m) return res.status(404).json({ error: 'Meeting not found.' });
+  if (!isLeaderOrCoreForTeam(req.me, m.teamId)) return res.status(403).json({ error: 'Only the team leader or core team can edit.' });
+  const b = req.body || {};
+  if (b.title !== undefined) { const t = clean(b.title, 160); if (t) m.title = t; }
+  if (b.date !== undefined && /^\d{4}-\d{2}-\d{2}$/.test(clean(b.date, 10))) m.date = clean(b.date, 10);
+  if (b.startTime !== undefined) m.startTime = clean(b.startTime, 5);
+  if (b.duration !== undefined) m.duration = Math.max(0, parseInt(b.duration, 10) || 60);
+  if (b.location !== undefined) m.location = clean(b.location, 200);
+  if (b.link !== undefined) m.link = clean(b.link, 500);
+  if (b.agenda !== undefined) m.agenda = clean(b.agenda, 2000);
+  m.updatedAt = Date.now();
+  logActivity(m.teamId, req.me.name + ' updated meeting "' + m.title + '"', { type: 'meeting', meetingId: m.id }); save();
+  try { emitToTeam(m.teamId, 'meeting', { action: 'updated', meeting: m }); } catch (e) {}
+  res.json({ ok: true, meeting: m });
+});
+
+app.delete('/api/meetings/:id', requireAuth, (req, res) => {
+  const m = db.meetings.find(x => x.id === parseInt(req.params.id, 10));
+  if (!m) return res.status(404).json({ error: 'Meeting not found.' });
+  if (!isLeaderOrCoreForTeam(req.me, m.teamId)) return res.status(403).json({ error: 'Not allowed.' });
+  m.status = 'cancelled'; m.updatedAt = Date.now();
+  logActivity(m.teamId, req.me.name + ' cancelled meeting "' + m.title + '"', { type: 'meeting', meetingId: m.id }); save();
+  try { emitToTeam(m.teamId, 'meeting', { action: 'cancelled', meeting: m }); } catch (e) {}
+  res.json({ ok: true, meeting: m });
+});
+
 /* ---------------- core team ---------------- */
 function adminRow(u) {
   const prog = progressFor(u.id);

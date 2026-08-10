@@ -126,8 +126,9 @@
   .err{color:#DC2626;font-size:12.5px;margin-top:6px;min-height:1em}
 
   /* stat row */
-  .statrow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
-  @media(max-width:560px){.statrow{grid-template-columns:repeat(2,1fr)}}
+  .statrow{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+  @media(max-width:760px){.statrow{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:420px){.statrow{grid-template-columns:repeat(2,1fr)}}
   .stat{border:1px solid var(--bd);border-radius:13px;padding:12px 14px;background:var(--card)}
   .stat .v{font-size:24px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
   .stat .k{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-top:5px}
@@ -172,6 +173,37 @@
   .mrow .k{color:var(--sub)}.mrow .v{color:var(--ink);font-weight:600;text-align:right}
   .b.danger{color:#B91C1C;border-color:#F3C0C0}.b.danger:hover{background:#FEF2F2;border-color:#DC2626}
   .b.ok{background:var(--ok);border-color:var(--ok);color:#fff}.b.ok:hover{background:#15803D}
+
+  /* calendar */
+  .calhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .calhead .mo{font-weight:800;color:var(--ink);font-size:14px}
+  .calnav{display:flex;gap:4px;margin-left:auto}
+  .calnav button,.calview button{font:inherit;font-size:12px;font-weight:700;width:28px;height:28px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .calview{display:flex;gap:4px}
+  .calview button{width:auto;padding:0 10px}
+  .calview button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+  .callegend{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 4px;font-size:11px;color:var(--sub)}
+  .callegend span{display:flex;align-items:center;gap:5px}
+  .lg{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .lg.meeting{background:var(--saffron)}.lg.task{background:var(--blue)}.lg.overdue{background:#DC2626}
+  .calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+  .caldow{font-size:9.5px;font-weight:700;text-transform:uppercase;color:var(--mut);text-align:center;padding:2px 0}
+  .calcell{aspect-ratio:1;border-radius:8px;border:1px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:3px 0 0;font-size:11.5px;color:var(--ink);cursor:default;position:relative}
+  .calcell.pad{color:var(--faint);opacity:.4}
+  .calcell.today{background:var(--blue-soft);font-weight:800;color:var(--blue-d)}
+  .calcell.has{cursor:pointer}
+  .calcell.sel{border-color:var(--blue)}
+  .caldots{display:flex;gap:2px;margin-top:2px;flex-wrap:wrap;justify-content:center}
+  .caldot{width:5px;height:5px;border-radius:50%}
+  .caldot.meeting{background:var(--saffron)}.caldot.task{background:var(--blue)}.caldot.overdue{background:#DC2626}
+  .agenda{display:flex;flex-direction:column;gap:2px}
+  .agday{font-size:11px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;margin:8px 0 2px}
+  .agitem{display:flex;gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--bd2);cursor:pointer}
+  .agitem:hover{background:var(--wbg)}
+  .agitem .ad{width:8px;height:8px;border-radius:50%;flex:none}
+  .agitem .ad.meeting{background:var(--saffron)}.agitem .ad.task{background:var(--blue)}.agitem .ad.overdue{background:#DC2626}
+  .agitem .at{flex:1;font-size:13px;color:var(--ink);font-weight:600}
+  .agitem .am{font-size:11.5px;color:var(--mut)}
 
   /* tasks (legacy board, kept for compatibility) */
   .tcols{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
@@ -297,7 +329,9 @@ function initials(n){return (n||'?').split(' ').map(x=>x[0]).join('').slice(0,2)
 function timeAgo(ts){if(!ts)return'';const s=(Date.now()-ts)/1000;if(s<60)return'just now';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';}
 let ME=null,TEAM=null,IDEAS=[],MILES=[],SUBS=[],CONN=null,chatTimer=null;
 let TASKS=[],TASKMETA={members:[],isLeader:false},taskSSE=null;
+let MEETINGS=[],CAL=null;
 async function loadTasks(){try{const d=await api('/api/my/tasks');TASKS=d.tasks||[];TASKMETA={members:d.members||[],isLeader:!!d.isLeader};}catch(e){TASKS=[];}}
+async function loadMeetings(){try{const d=await api('/api/my/meetings');MEETINGS=d.meetings||[];}catch(e){MEETINGS=[];}}
 
 /* ---------- agreement (unchanged flow) ---------- */
 function agreementText(leader){
@@ -365,6 +399,7 @@ function nextMove(){
   const od=mt.filter(isOverdue);if(od.length)return{eb:'Overdue',ico:'⏰',t:od[0].title,d:'This task is past its deadline — open it and update or complete it now.',target:'mytasks',label:'Open task'};
   const pa=mt.filter(t=>t.status==='PENDING_ACCEPTANCE');if(pa.length)return{eb:'Awaiting you',ico:'📥',t:'Respond to: '+pa[0].title,d:'A task is waiting for you to accept or reject.',target:'mytasks',label:'Review'};
   const ip=mt.filter(t=>t.status==='ACCEPTED'||t.status==='IN_PROGRESS');if(ip.length)return{eb:'In progress',ico:'🔨',t:ip[0].title,d:'Keep this task moving — mark it complete when done.',target:'mytasks',label:'Open task'};
+  const um=nextMeeting();if(um&&um.date<=ymd(new Date(Date.now()+2*86400000)))return{eb:'Upcoming meeting',ico:'📅',t:um.title,d:'On '+new Date(um.date+'T00:00:00').toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})+(um.startTime?' at '+um.startTime:'')+'.',target:'calendar',label:'View'};
   if(!TEAM.psId) return{eb:'Set up',ico:'🎯',t:'Choose your problem statement',d:'Enter your PS ID and its live submission count so we can gauge your odds.',target:'setup',focus:'psId',label:'Continue'};
   if(!TEAM.wantsLeader&&!TEAM.ideaName) return{eb:'Set up',ico:'💡',t:'Lock your primary idea',d:'Pick the idea your team will build from the arsenal.',target:'setup',focus:'idea',label:'Continue'};
   if(SUBS.some(s=>s.status==='changes')) return{eb:'Action needed',ico:'📝',t:'Review feedback & resubmit',d:'The core team requested changes on a target. Address it and resubmit.',target:'tasks',label:'Continue'};
@@ -462,6 +497,108 @@ async function taskAction(id,act){const err=document.getElementById('tmErr');if(
     document.getElementById('modalRoot').innerHTML='';await loadTasks();render();toast('Done ✓');
   }catch(ex){if(err)err.textContent=ex.message;else toast(ex.message);}}
 
+/* ---------- calendar (Phase 3) ---------- */
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DOW=['Su','Mo','Tu','We','Th','Fr','Sa'];
+function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function calEvents(){const ev=[];
+  MEETINGS.filter(m=>m.status!=='cancelled'&&m.date).forEach(m=>ev.push({date:m.date,type:'meeting',title:m.title,time:m.startTime,id:m.id,ref:'meeting'}));
+  TASKS.filter(t=>t.deadline&&TS_OPEN.includes(t.status)).forEach(t=>ev.push({date:t.deadline,type:isOverdue(t)?'overdue':'task',title:t.title,id:t.id,ref:'task'}));
+  return ev;}
+function eventsByDate(){const map={};calEvents().forEach(e=>{(map[e.date]=map[e.date]||[]).push(e);});return map;}
+function nextMeeting(){const today=ymd(new Date());return MEETINGS.filter(m=>m.status!=='cancelled'&&m.date>=today).sort((a,b)=>(a.date+(a.startTime||'')).localeCompare(b.date+(b.startTime||'')))[0]||null;}
+function upcomingMeetingCount(){const today=ymd(new Date());return MEETINGS.filter(m=>m.status!=='cancelled'&&m.date>=today).length;}
+
+function renderCalendar(){const body=document.getElementById('calBody');if(!body||!CAL)return;
+  const map=eventsByDate();const today=ymd(new Date());
+  if(CAL.view==='month'){
+    const first=new Date(CAL.y,CAL.m,1);const start=first.getDay();const days=new Date(CAL.y,CAL.m+1,0).getDate();
+    let cells='';for(let i=0;i<7;i++)cells+='<div class="caldow">'+DOW[i]+'</div>';
+    for(let i=0;i<start;i++)cells+='<div class="calcell pad"></div>';
+    for(let d=1;d<=days;d++){const ds=CAL.y+'-'+String(CAL.m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      const evs=map[ds]||[];const types=[...new Set(evs.map(e=>e.type))];
+      const dots=types.slice(0,3).map(t=>'<span class="caldot '+t+'"></span>').join('');
+      cells+='<div class="calcell'+(ds===today?' today':'')+(evs.length?' has':'')+(CAL.sel===ds?' sel':'')+'"'+(evs.length?' data-calday="'+ds+'"':'')+'>'+d+'<div class="caldots">'+dots+'</div></div>';}
+    body.innerHTML='<div class="calgrid">'+cells+'</div>'+
+      (CAL.sel&&map[CAL.sel]?'<div class="agenda" style="margin-top:10px">'+dayAgenda(CAL.sel,map[CAL.sel])+'</div>':'<div class="faint" style="font-size:12px;text-align:center;margin-top:10px;color:var(--mut)">Tap a highlighted day to see its events.</div>');
+    body.querySelectorAll('[data-calday]').forEach(c=>c.addEventListener('click',()=>{CAL.sel=c.dataset.calday;renderCalendar();}));
+  }else{
+    const all=calEvents().filter(e=>e.date>=today).sort((a,b)=>a.date.localeCompare(b.date));
+    if(!all.length){body.innerHTML='<div class="emptytask">No upcoming meetings or deadlines.</div>';}
+    else{const groups={};all.forEach(e=>{(groups[e.date]=groups[e.date]||[]).push(e);});
+      body.innerHTML='<div class="agenda">'+Object.keys(groups).sort().map(d=>{
+        const dd=new Date(d+'T00:00:00');const lbl=dd.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})+(d===today?' · Today':'');
+        return '<div class="agday">'+lbl+'</div>'+dayAgenda(d,groups[d]);}).join('')+'</div>';}
+  }
+  bindAgenda(body);}
+function dayAgenda(date,evs){return evs.map(e=>{const meta=e.ref==='meeting'?(e.time?e.time:'Meeting'):(e.type==='overdue'?'Overdue':'Due');
+  return '<div class="agitem" data-calev="'+e.ref+':'+e.id+'"><span class="ad '+e.type+'"></span><span class="at">'+esc(e.title)+'</span><span class="am">'+meta+'</span></div>';}).join('');}
+function bindAgenda(scope){scope.querySelectorAll('[data-calev]').forEach(it=>it.addEventListener('click',()=>{const[ref,id]=it.dataset.calev.split(':');if(ref==='meeting')openMeetingModal(parseInt(id,10));else openTaskModal(parseInt(id,10));}));}
+
+function buildCalendarCard(){
+  if(!CAL)CAL={view:(window.innerWidth<720?'agenda':'month'),y:new Date().getFullYear(),m:new Date().getMonth(),sel:null};
+  const btn=TASKMETA.isLeader?'<button class="b sm" id="newMtgBtn" style="margin-left:auto">+ Meeting</button>':'';
+  return '<div class="cc col5" id="calendar"><h3 class="t"><span class="ico">📅</span> Calendar'+btn+'</h3>'+
+    '<div class="calhead"><span class="mo" id="calMo"></span><div class="calview"><button data-cv="month">Month</button><button data-cv="agenda">Agenda</button></div>'+
+      '<div class="calnav"><button id="calPrev">‹</button><button id="calNext">›</button></div></div>'+
+    '<div class="callegend"><span><i class="lg meeting"></i>Meeting</span><span><i class="lg task"></i>Task due</span><span><i class="lg overdue"></i>Overdue</span></div>'+
+    '<div id="calBody"></div></div>';}
+
+function wireCalendar(){
+  const mo=document.getElementById('calMo');if(!mo)return;
+  function paintHead(){mo.textContent=CAL.view==='month'?(MONTHS[CAL.m]+' '+CAL.y):'Upcoming';
+    document.querySelectorAll('.calview button').forEach(b=>b.classList.toggle('on',b.dataset.cv===CAL.view));
+    const nav=document.querySelector('.calnav');if(nav)nav.style.visibility=CAL.view==='month'?'visible':'hidden';}
+  document.querySelectorAll('.calview button').forEach(b=>b.addEventListener('click',()=>{CAL.view=b.dataset.cv;paintHead();renderCalendar();}));
+  document.getElementById('calPrev').addEventListener('click',()=>{CAL.m--;if(CAL.m<0){CAL.m=11;CAL.y--;}paintHead();renderCalendar();});
+  document.getElementById('calNext').addEventListener('click',()=>{CAL.m++;if(CAL.m>11){CAL.m=0;CAL.y++;}paintHead();renderCalendar();});
+  const nb=document.getElementById('newMtgBtn');if(nb)nb.addEventListener('click',openMeetingForm);
+  paintHead();renderCalendar();}
+
+function openMeetingModal(id){const m=MEETINGS.find(x=>x.id===id);if(!m)return;const leader=TASKMETA.isLeader;
+  const parts=(m.participants||[]).map(pid=>{const mm=TASKMETA.members.find(x=>x.id===pid);return mm?mm.name:'';}).filter(Boolean).join(', ');
+  const dd=new Date(m.date+'T00:00:00').toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const linkRow=m.link?'<div class="mrow"><span class="k">Link</span><span class="v"><a href="'+esc(m.link)+'" target="_blank" rel="noopener" style="color:var(--blue)">Join ↗</a></span></div>':'';
+  let acts='';if(leader&&m.status!=='cancelled')acts='<button class="b" data-mact="reschedule" data-mid="'+m.id+'">Reschedule</button><button class="b danger" data-mact="cancel" data-mid="'+m.id+'">Cancel meeting</button>';
+  document.getElementById('modalRoot').innerHTML='<div class="overlay" id="mOverlay"><div class="modal">'+
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span class="tstat s-'+(m.status==='cancelled'?'CANCELLED':'ACCEPTED')+'">'+(m.status==='cancelled'?'Cancelled':'Scheduled')+'</span><span class="dl soon" style="margin-left:auto">'+esc(m.startTime||'')+'</span></div>'+
+    '<h2 style="font-size:20px;margin:6px 0 10px;color:var(--ink)">'+esc(m.title)+'</h2>'+
+    '<div class="mrow"><span class="k">Date</span><span class="v">'+dd+'</span></div>'+
+    '<div class="mrow"><span class="k">Time</span><span class="v">'+(m.startTime||'—')+(m.duration?' · '+m.duration+' min':'')+'</span></div>'+
+    (m.location?'<div class="mrow"><span class="k">Location</span><span class="v">'+esc(m.location)+'</span></div>':'')+linkRow+
+    (m.agenda?'<div class="mrow"><span class="k">Agenda</span><span class="v" style="max-width:62%">'+esc(m.agenda)+'</span></div>':'')+
+    (parts?'<div class="mrow"><span class="k">Participants</span><span class="v" style="max-width:62%">'+esc(parts)+'</span></div>':'')+
+    '<div class="mrow"><span class="k">Organiser</span><span class="v">'+esc(m.createdByName)+(m.createdByRole==='core'?' (core team)':'')+'</span></div>'+
+    '<div class="modact">'+acts+'</div><div class="err" id="mmErr"></div>'+
+    '<button class="b" id="mClose" style="margin-top:14px;width:100%;justify-content:center">Close</button></div></div>';
+  document.getElementById('mClose').addEventListener('click',()=>document.getElementById('modalRoot').innerHTML='');
+  document.getElementById('mOverlay').addEventListener('click',e=>{if(e.target.id==='mOverlay')document.getElementById('modalRoot').innerHTML='';});}
+
+function openMeetingForm(){
+  document.getElementById('modalRoot').innerHTML='<div class="overlay" id="mfOverlay"><div class="modal">'+
+    '<h2 style="font-size:20px;margin:0 0 12px;color:var(--ink)">Schedule a team meeting</h2>'+
+    '<div class="assignform" style="margin-bottom:0">'+
+      '<input class="full" id="mfTitle" placeholder="Meeting title" style="font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px"/>'+
+      '<input id="mfDate" type="date" style="font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px"/>'+
+      '<input id="mfTime" type="time" style="font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px"/>'+
+      '<input id="mfDur" type="number" min="0" step="15" value="60" placeholder="Duration (min)" style="font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px"/>'+
+      '<input id="mfLoc" placeholder="Location" style="font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px"/>'+
+      '<input class="full" id="mfLink" placeholder="Meeting link (optional)" style="font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px"/>'+
+      '<textarea class="full" id="mfAgenda" placeholder="Agenda (optional)" style="font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;min-height:56px;resize:vertical"></textarea></div>'+
+    '<p class="faint" style="font-size:11.5px;color:var(--mut);margin:8px 0 0">All team members are invited by default and notified.</p>'+
+    '<div class="modact"><button class="b pri" id="mfSave">Schedule</button><button class="b" id="mfCancel">Cancel</button></div><div class="err" id="mfErr"></div></div></div>';
+  document.getElementById('mfCancel').addEventListener('click',()=>document.getElementById('modalRoot').innerHTML='');
+  document.getElementById('mfSave').addEventListener('click',async()=>{const err=document.getElementById('mfErr');err.textContent='';
+    const body={title:document.getElementById('mfTitle').value,date:document.getElementById('mfDate').value,startTime:document.getElementById('mfTime').value,duration:document.getElementById('mfDur').value,location:document.getElementById('mfLoc').value,link:document.getElementById('mfLink').value,agenda:document.getElementById('mfAgenda').value};
+    try{await api('/api/meetings',{method:'POST',body:JSON.stringify(body)});document.getElementById('modalRoot').innerHTML='';await loadMeetings();render();toast('Meeting scheduled ✓');}catch(ex){err.textContent=ex.message;}});}
+
+async function meetingAction(id,act){const err=document.getElementById('mmErr');if(err)err.textContent='';
+  try{
+    if(act==='cancel'){if(!confirm('Cancel this meeting?'))return;await api('/api/meetings/'+id,{method:'DELETE'});}
+    else if(act==='reschedule'){const d=prompt('New date (YYYY-MM-DD):');if(d==null)return;const t=prompt('New start time (HH:MM), blank to keep:');const b={date:d};if(t)b.startTime=t;await api('/api/meetings/'+id,{method:'PUT',body:JSON.stringify(b)});}
+    document.getElementById('modalRoot').innerHTML='';await loadMeetings();render();toast('Done ✓');
+  }catch(ex){if(err)err.textContent=ex.message;else toast(ex.message);}}
+
 /* ---------- chat (unchanged API) ---------- */
 async function loadChat(){
   try{const cs=await api('/api/my/comments');const box=document.getElementById('msgs');if(!box)return;
@@ -499,9 +636,11 @@ document.addEventListener('click',closeDrops);
 async function doLogout(){await api('/api/logout',{method:'POST'});location.href='/';}
 // one-time delegation for task modal action buttons
 document.addEventListener('click',e=>{const b=e.target.closest('[data-tact]');if(!b)return;e.stopPropagation();taskAction(parseInt(b.dataset.tid,10),b.dataset.tact);});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-mact]');if(!b)return;e.stopPropagation();meetingAction(parseInt(b.dataset.mid,10),b.dataset.mact);});
 // realtime: refresh tasks (and chat) on team SSE events
 function startSSE(){try{if(taskSSE)taskSSE.close();taskSSE=new EventSource('/api/connect/stream');
   taskSSE.addEventListener('task',async()=>{await loadTasks();render();});
+  taskSSE.addEventListener('meeting',async()=>{await loadMeetings();render();});
   taskSSE.addEventListener('message',()=>{loadChat();});
 }catch(e){}}
 
@@ -575,7 +714,8 @@ function render(){
       '<div class="stat up"><div class="v">'+ts.pending+'</div><div class="k">To accept</div></div>'+
       '<div class="stat up"><div class="v">'+ts.active+'</div><div class="k">In progress</div></div>'+
       '<div class="stat dn"><div class="v">'+ts.done+'</div><div class="k">Completed</div></div>'+
-      '<div class="stat ov"><div class="v">'+ts.overdue+'</div><div class="k">Overdue</div></div>'+'</div></div>'+
+      '<div class="stat ov"><div class="v">'+ts.overdue+'</div><div class="k">Overdue</div></div>'+
+      '<div class="stat"><div class="v">'+upcomingMeetingCount()+'</div><div class="k">Meetings</div></div>'+'</div></div>'+
 
     // NEXT MOVE (7)
     '<div class="cc col7 nm"><div class="ring">'+nm.ico+'</div><div><div class="eb">Your next move</div><h2>'+nm.t+'</h2><p>'+nm.d+'</p></div>'+
@@ -596,8 +736,8 @@ function render(){
       '<div class="tfilter"><button class="on" data-f="all">All</button><button data-f="todo">To do ('+gc.todo+')</button><button data-f="prog">In progress ('+(gc.prog)+')</button><button data-f="chg">Needs fix ('+gc.chg+')</button><button data-f="done">Done ('+gc.done+')</button></div>'+
       '<div class="tlist" id="tlist">'+tlistHtml+'</div></div>'+
 
-    // SCHEDULE / UPCOMING (5) — becomes full calendar in Phase 3
-    '<div class="cc col5"><h3 class="t"><span class="ico">📅</span> Schedule</h3><div class="feed">'+upHtml+'</div></div>'+
+    // UNIFIED CALENDAR (5) — meetings + task deadlines
+    buildCalendarCard()+
 
     // TEAM HUB (6)
     '<div class="cc col6" id="team"><h3 class="t"><span class="ico">👥</span> Team hub</h3><div class="avatars">'+avs+'</div>'+
@@ -680,6 +820,7 @@ function render(){
   document.querySelectorAll('[data-ack]').forEach(b=>b.addEventListener('click',async()=>{await api('/api/my/directive/'+b.dataset.ack+'/ack',{method:'POST'});const dd=TEAM.directives.find(x=>x.id==b.dataset.ack);if(dd)dd.done=true;render();}));
   document.getElementById('chatForm').addEventListener('submit',async e=>{e.preventDefault();const inp=document.getElementById('chatInput');const t=inp.value.trim();if(!t)return;inp.value='';try{await api('/api/my/comment',{method:'POST',body:JSON.stringify({text:t})});await loadChat();}catch(ex){toast(ex.message);}});
   document.querySelectorAll('.taskrow').forEach(r=>r.addEventListener('click',()=>openTaskModal(parseInt(r.dataset.topen,10))));
+  wireCalendar();
   const af=document.getElementById('assignForm');
   if(af)af.addEventListener('submit',async e=>{e.preventDefault();const err=document.getElementById('atErr');err.textContent='';
     const body={title:document.getElementById('atTitle').value,assignedTo:document.getElementById('atWho').value,priority:document.getElementById('atPrio').value,deadline:document.getElementById('atDeadline').value,description:document.getElementById('atDesc').value};
@@ -697,7 +838,7 @@ async function boot(){
   if(!TEAM){location.href='/status.html';return;}
   IDEAS=await api('/api/ideas');MILES=await api('/api/milestones');SUBS=await api('/api/my/submissions');
   CONN=await api('/api/connect/summary').catch(()=>null);
-  await loadTasks();
+  await loadTasks();await loadMeetings();
   render();
   startSSE();
 }
